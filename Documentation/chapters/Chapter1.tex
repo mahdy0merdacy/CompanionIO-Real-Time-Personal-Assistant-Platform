@@ -1,0 +1,96 @@
+\chapter{Présentation Générale du Projet}
+
+\section{Introduction}
+
+Ce chapitre a pour objectif de présenter le cadre général du projet CompanionIO, ainsi que les motivations ayant conduit à sa conception. Il introduit également les concepts fondamentaux liés aux assistants intelligents modernes et met en lumière les limites des solutions existantes.
+
+Dans un contexte marqué par l’évolution rapide des technologies d’intelligence artificielle et des architectures distribuées, la conception de systèmes capables d’interagir intelligemment avec les utilisateurs tout en assurant une forte disponibilité représente un défi majeur. Ce chapitre pose ainsi les bases nécessaires à la compréhension du système proposé.
+
+\section{Présentation du Projet}
+
+CompanionIO est un système d’assistance intelligent conçu pour accompagner l’utilisateur dans l’exécution de ses tâches quotidiennes à travers une interface conversationnelle. Contrairement aux assistants traditionnels, souvent limités à des interactions ponctuelles, CompanionIO vise à offrir une expérience continue et intégrée.
+
+Le système repose sur une combinaison de technologies modernes incluant l’intelligence artificielle conversationnelle, les architectures microservices et les systèmes de traitement de flux (streaming). L’objectif est de permettre une orchestration intelligente des actions, où l’utilisateur peut déléguer certaines tâches à un assistant capable de comprendre, planifier et exécuter.
+
+CompanionIO ne se limite pas à fournir des réponses, mais cherche à devenir un véritable intermédiaire entre l’utilisateur et son environnement numérique, en automatisant certaines opérations et en facilitant la prise de décision.
+
+\section{Étude de l’Existant}
+
+\subsection{Problématique}
+
+Malgré les avancées significatives dans le domaine de l’intelligence artificielle, les systèmes actuels présentent plusieurs limitations majeures.
+
+D’une part, les assistants conversationnels existants sont principalement réactifs. Ils nécessitent une sollicitation explicite de l’utilisateur et ne disposent pas d’une capacité d’orchestration avancée des tâches. D’autre part, les applications intelligentes sont souvent cloisonnées, chaque service fonctionnant de manière isolée sans réelle coordination globale.
+
+Par ailleurs, les systèmes monolithiques ou faiblement distribués rencontrent des difficultés en termes de scalabilité et de tolérance aux pannes. Dans un contexte où les applications doivent gérer des flux de données en temps réel et assurer une disponibilité continue, ces limitations deviennent critiques.
+
+Enfin, l’intégration de l’intelligence artificielle dans des systèmes opérationnels pose des défis supplémentaires, notamment en termes de latence, de gestion des ressources et de complexité architecturale.
+
+\subsection{Solution Proposée}
+
+Afin de répondre à ces problématiques, CompanionIO propose une approche basée sur une architecture distribuée moderne, combinant microservices, communication asynchrone et traitement de flux.
+
+Le système est conçu autour de plusieurs composants indépendants, chacun responsable d’une fonctionnalité spécifique, permettant ainsi une meilleure modularité et une évolutivité accrue. Cette approche facilite également la maintenance et le déploiement continu.
+
+L’intégration de technologies de streaming permet de traiter les événements en temps réel, offrant ainsi une réactivité accrue du système. De plus, l’utilisation d’une intelligence artificielle conversationnelle permet d’interpréter les requêtes utilisateurs et de les transformer en actions concrètes.
+
+\section{Architecture Générale du Système}
+
+L’architecture de CompanionIO repose sur un modèle distribué basé sur des microservices déployés sur une infrastructure cloud, notamment via des services proposés par Microsoft Azure.
+
+Chaque composant du système est conçu comme un service مستقل, communiquant avec les autres via des mécanismes de messaging ou de streaming. Cette architecture permet d’assurer une forte résilience face aux pannes et une capacité de montée en charge horizontale.
+
+Le système peut être décomposé en plusieurs couches principales :
+
+\begin{itemize}
+    \item Une couche d’interface utilisateur permettant l’interaction avec l’assistant via des interfaces conversationnelles
+    \item Une couche de traitement IA responsable de la compréhension et de la génération des réponses
+    \item Une couche d’orchestration chargée de coordonner les différentes tâches et services
+    \item Une couche de services (microservices) implémentant les fonctionnalités métier
+    \item Une couche de streaming assurant la gestion des flux de données en temps réel
+\end{itemize}
+
+L’utilisation d’une architecture basée sur Azure permet de bénéficier de services managés, facilitant le déploiement, la supervision et la scalabilité du système.
+
+\section{Méthodologie de Développement}
+
+\subsection{Les Méthodes Agiles}
+
+Dans le cadre de ce projet, une approche agile a été adoptée afin de permettre une évolution progressive du système tout en intégrant les retours obtenus au fur et à mesure du développement.
+
+Les méthodes agiles favorisent une meilleure adaptation aux changements et une livraison continue de fonctionnalités, ce qui est particulièrement pertinent dans un projet exploratoire comme CompanionIO.
+
+\subsection{Pourquoi Scrum}
+
+\subsubsection{Définition}
+
+Scrum est une méthodologie agile basée sur des cycles courts appelés sprints, permettant de structurer le développement en itérations successives.
+
+\subsubsection{Rôles}
+
+Les rôles principaux dans Scrum sont :
+\begin{itemize}
+    \item Le Product Owner, responsable de la définition des besoins
+    \item Le Scrum Master, garant du bon déroulement du processus
+    \item L’équipe de développement, chargée de l’implémentation
+\end{itemize}
+
+\subsubsection{Cycle de Vie}
+
+Le cycle de vie Scrum comprend plusieurs étapes :
+\begin{itemize}
+    \item La planification du sprint
+    \item Les réunions quotidiennes (Daily Scrum)
+    \item La revue de sprint
+    \item La rétrospective
+\end{itemize}
+
+\subsection{Langage de Modélisation}
+
+Afin de structurer la conception du système, des outils de modélisation tels que UML seront utilisés. Ces outils permettent de représenter les différentes composantes du système ainsi que leurs interactions, facilitant ainsi la compréhension globale de l’architecture.
+
+\section{Conclusion}
+
+Ce chapitre a permis de présenter le projet CompanionIO dans son contexte général, ainsi que les problématiques auxquelles il répond. L’étude de l’existant a mis en évidence les limites des solutions actuelles, justifiant ainsi l’approche adoptée.
+
+Le chapitre suivant sera consacré à la conception détaillée du système, incluant les choix architecturaux et les technologies utilisées.

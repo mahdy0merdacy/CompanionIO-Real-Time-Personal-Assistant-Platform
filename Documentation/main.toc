@@ -1,0 +1,17 @@
+\babel@toc {nil}{}\relax 
+\contentsline {chapter}{Introduction Générale}{4}{chapter*.4}%
+\contentsline {chapter}{\numberline {1}Présentation Générale du Projet}{5}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Introduction}{5}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Présentation du Projet}{5}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Étude de l’Existant}{6}{section.1.3}%
+\contentsline {subsection}{\numberline {1.3.1}Problématique}{6}{subsection.1.3.1}%
+\contentsline {subsection}{\numberline {1.3.2}Solution Proposée}{6}{subsection.1.3.2}%
+\contentsline {section}{\numberline {1.4}Architecture Générale du Système}{6}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Méthodologie de Développement}{7}{section.1.5}%
+\contentsline {subsection}{\numberline {1.5.1}Les Méthodes Agiles}{7}{subsection.1.5.1}%
+\contentsline {subsection}{\numberline {1.5.2}Pourquoi Scrum}{7}{subsection.1.5.2}%
+\contentsline {subsubsection}{Définition}{7}{section*.5}%
+\contentsline {subsubsection}{Rôles}{7}{section*.6}%
+\contentsline {subsubsection}{Cycle de Vie}{7}{section*.7}%
+\contentsline {subsection}{\numberline {1.5.3}Langage de Modélisation}{8}{subsection.1.5.3}%
+\contentsline {section}{\numberline {1.6}Conclusion}{8}{section.1.6}%
