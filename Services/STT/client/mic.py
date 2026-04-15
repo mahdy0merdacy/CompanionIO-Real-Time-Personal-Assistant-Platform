@@ -3,8 +3,7 @@ import sounddevice as sd
 import websockets
 import numpy as np
 
-SERVER_URL = "ws://127.0.0.1:8000/stt"
-
+SERVER_URL = "ws://127.0.0.1:8001/stt"
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 3200  # ~0.2s of audio at 16kHz
 
@@ -28,7 +27,7 @@ async def stream_mic():
 
         # Start streaming audio from microphone
         with sd.InputStream(
-            samplerate=SAMPLE_RATE,
+            samplerate=SAMPLE_RATE, 
             channels=1,
             dtype="float32",
             blocksize=CHUNK_SIZE,
