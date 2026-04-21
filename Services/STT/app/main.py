@@ -2,71 +2,59 @@ from fastapi import FastAPI, WebSocket
 from .speech_service import SpeechService
 from dotenv import load_dotenv
 import asyncio
-import websockets
-import time
 
 load_dotenv()
 
 app = FastAPI()
 speech_service = SpeechService()
 
-LLM_URL = "ws://127.0.0.1:8002/llm"
-
-
 @app.websocket("/stt")
 async def stt_socket(ws: WebSocket):
     await ws.accept()
-
+    print("[STT] Client connected")
+    
     loop = asyncio.get_running_loop()
-
-    # queue for Azure callback → async world
     text_queue = asyncio.Queue()
-
-    # connect to LLM
-    llm_ws = await websockets.connect(LLM_URL)
 
     recognizer, stream = speech_service.create_recognizer()
 
-    # ---------------------------
-    # Azure callback (THREAD)
-    # ---------------------------
     def recognized(evt):
         if evt.result.text:
-            asyncio.run_coroutine_threadsafe(
-                text_queue.put(evt.result.text),
-                loop
-            )
+            print(f"[STT] 🎯 Azure recognized: '{evt.result.text}'")
+            # ✅ Use call_soon_threadsafe instead
+            loop.call_soon_threadsafe(text_queue.put_nowait, evt.result.text)
 
     recognizer.recognized.connect(recognized)
     recognizer.start_continuous_recognition()
-    
-    # ---------------------------
-    # main loop
-    # ---------------------------
-    try:
-        while True:
-         audio_chunk = await ws.receive_bytes()
-         stream.write(audio_chunk)
 
-         while not text_queue.empty():
-            text = await text_queue.get()
-
-            await llm_ws.send(text)
-            await ws.send_text(text)
-
-            response = ""
-  
+    async def receive_audio():
+        try:
             while True:
-              token = await llm_ws.recv()
-              if token == "<END>":
-                  break
+                audio_chunk = await ws.receive_bytes()
+                print(f"[STT] 📥 Received {len(audio_chunk)} bytes")  # ✅ add this
+                stream.write(audio_chunk)
+        except Exception as e:
+            print(f"[STT] Audio receive stopped: {e}")
 
-            response += token
-            await ws.send_text(token)
+    async def send_transcripts():
+        try:
+            while True:
+                text = await text_queue.get()
+                print(f"[STT] 📤 Sending transcript: '{text}'")
+                await ws.send_text(text)
+        except Exception as e:
+            print(f"[STT] Transcript send stopped: {e}")
 
+    receive_task = asyncio.create_task(receive_audio())
+    send_task = asyncio.create_task(send_transcripts())
+
+    try:
+        await asyncio.gather(receive_task, send_task)
     except Exception as e:
-        print("WebSocket closed:", e)
-
+        print(f"[STT] ❌ Connection closed: {e}")
     finally:
+        receive_task.cancel()
+        send_task.cancel()
+        stream.close()
         recognizer.stop_continuous_recognition()
-        await llm_ws.close()
+        print("[STT] ✅ Cleaned up")

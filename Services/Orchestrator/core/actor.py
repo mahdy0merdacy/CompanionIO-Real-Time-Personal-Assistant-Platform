@@ -25,7 +25,6 @@ class SessionActor:
         self.full_transcript = ""
 
     async def start(self):
-        await self.stt.connect()
         self._stt_task = asyncio.create_task(self._stt_loop())
         self._task=asyncio.create_task(self._run())
     
@@ -91,7 +90,6 @@ class SessionActor:
         print(f"[ACTOR] Turn complete. Processing: {prompt}")
         try:
             # Get fresh LLM connection for this utterance
-            await self.llm.connect()
             print(f"[ACTOR] Sending to LLM and streaming response...")
             async for token in self.llm.generate(prompt):
                 await self.output_queue.put({"type": "token", "data": token})
