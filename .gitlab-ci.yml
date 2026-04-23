@@ -5,15 +5,26 @@ stages:
 image: python:3.11
 
 before_script:
-  - pip install -r requirements.txt
-  - pip install pytest ruff
+  - python -m pip install --upgrade pip
 
-lint:
+# -----------------------
+# LINT (TTS only for now)
+# -----------------------
+lint_tts:
   stage: lint
   script:
+    - cd Services/TTS
+    - pip install ruff
     - ruff check . || echo "lint issues (non-blocking)"
 
-test:
+# -----------------------
+# TEST (TTS only for now)
+# -----------------------
+test_tts:
   stage: test
   script:
+    - cd Services/TTS
+    - pip install -r requirements.txt
+    - pip install pytest
     - pytest -q
+
