@@ -1,21 +1,19 @@
 stages:
+  - lint
   - test
 
-variables:
-  PYTHON_VERSION: "3.11"
+image: python:3.11
+
+before_script:
+  - pip install -r requirements.txt
+  - pip install pytest ruff
+
+lint:
+  stage: lint
+  script:
+    - ruff check . || echo "lint issues (non-blocking)"
 
 test:
   stage: test
-  image: python:3.11
-
-  before_script:
-    - pip install --upgrade pip
-    - pip install -r requirements.txt
-    - pip install pytest
-
   script:
-    - pytest
-
-  only:
-    - main
-    - merge_requests
+    - pytest -q
