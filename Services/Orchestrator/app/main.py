@@ -51,9 +51,11 @@ async def session_endpoint(ws:WebSocket):
                         await ws.send_text(f"TRANSCRIPT: {msg['data']}")
                     elif msg["type"]=="token":
                         await ws.send_text(msg["data"])
+                    elif msg["type"]=="audio":
+                        await ws.send_bytes(msg["data"])
                     elif msg["type"]=="turn_end":
                         await ws.send_text("__TURN_END__")
-                        break  # Exit after turn_end successfully sent
+                        pass  # Exit after turn_end successfully sent
                 except Exception as e:
                     print(f"[ORCHESTRATOR] Failed to send message: {e}, continuing...")
         except asyncio.CancelledError:

@@ -15,24 +15,36 @@ async def main():
     
     try:
         async for msg in mic.receive():
+
+            # 🔹 Handle audio first
+            if isinstance(msg, bytes):
+                print(f"[AUDIO] {len(msg)} bytes")
+                continue
+
+            # 🔹 From here: msg is str
             if msg == "__TURN_END__":
                 print("\n✅ Turn complete\n")
+
             elif msg.startswith("TRANSCRIPT: "):
                 print(f"🎤 {msg[11:]}", end="", flush=True)
+
             else:
                 print(f"🤖 {msg}", end="", flush=True)
+
     except KeyboardInterrupt:
         print("\n\n[MIC] Stopping...")
+
     finally:
         stream.stop()
         stream.close()
         
-        # Save the recording so you can verify it's real speech
+        # Save the recording
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"recording_{timestamp}.wav"
         mic.save_recording(filename)
         
         await mic.close()
+
 
 if __name__ == "__main__":
     try:

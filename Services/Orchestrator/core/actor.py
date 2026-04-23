@@ -3,6 +3,7 @@ from core.mailbox import Mailbox
 from core.pipeline import run_pipeline
 from clients.stt_client import STTClient
 from clients.llm_client import LLMClient
+from clients.tts_client import TTSClient
 
 
 
@@ -13,10 +14,11 @@ class SessionActor:
     yahki maa l websocket bl output_queue{redis streaming later}
     """
 
-    def __init__(self,session_id:str,stt:STTClient,llm:LLMClient):
+    def __init__(self,session_id:str,stt:STTClient,llm:LLMClient,tts:TTSClient):
         self.session_id=session_id
         self.stt=stt
         self.llm=llm
+        self.tts=tts
         self.history:list[dict]=[]
         self.mailbox=Mailbox()
         self.output_queue:asyncio.Queue=asyncio.Queue()
@@ -91,8 +93,24 @@ class SessionActor:
         try:
             # Get fresh LLM connection for this utterance
             print(f"[ACTOR] Sending to LLM and streaming response...")
+            full_response = ""
             async for token in self.llm.generate(prompt):
+                full_response+= token
                 await self.output_queue.put({"type": "token", "data": token})
+            print(f"[ACTOR] ✅ LLM complete: '{full_response[:50]}...'")
+
+            #send LLM response to
+
+            if full_response.strip():
+                print(f"[ACTOR] 🎵 Sending to TTS...")
+                async for audio_chunk in self.tts.synthesize(full_response):
+                    # Send audio chunks to client
+                    await self.output_queue.put({"type": "audio", "data": audio_chunk})
+                
+                print(f"[ACTOR] ✅ TTS complete")
+
+            
+
             # Signal end of LLM turn (non-terminal marker)
             await self.output_queue.put({"type": "turn_complete"})
         except Exception as e:
