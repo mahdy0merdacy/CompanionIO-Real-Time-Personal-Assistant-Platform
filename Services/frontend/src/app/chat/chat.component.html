@@ -1,0 +1,243 @@
+<div class="chat-layout">
+
+  <!-- Header avec effet glassmorphique -->
+  <header class="chat-header">
+    <div class="header-brand">
+      <div class="header-brand-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="url(#gradient)"/>
+          <path d="M8 12h8M12 8v8" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#8b5cf6"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <span class="header-brand-name">Companion<span>AI</span></span>
+    </div>
+
+    <div class="header-status">
+      <div class="status-indicator" [class]="status">
+        <span class="status-pulse"></span>
+      </div>
+      <span class="status-label">{{ statusLabel }}</span>
+    </div>
+
+    <div class="header-actions">
+      <div class="user-profile">
+        <div class="user-avatar">{{ auth.currentUser?.username?.charAt(0)?.toUpperCase() || 'U' }}</div>
+        <span class="header-user">{{ auth.currentUser?.username }}</span>
+      </div>
+
+      <button class="btn-icon" [class.tts-active]="ttsEnabled" [title]="ttsEnabled ? 'Désactiver la réponse vocale' : 'Activer la réponse vocale'" (click)="toggleTts()">
+        <svg *ngIf="ttsEnabled" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+        <svg *ngIf="!ttsEnabled" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+      </button>
+
+      <button class="btn-icon" title="Nouvelle conversation" (click)="clearChat()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+      </button>
+
+      <button class="btn-icon" *ngIf="status === 'disconnected'" title="Reconnecter" (click)="reconnect()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+        </svg>
+      </button>
+
+      <button class="btn-icon" title="Déconnexion" (click)="logout()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l4-4-4-4M21 12H9"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Zone des messages -->
+  <main class="chat-messages">
+    <div class="chat-messages-inner">
+
+      <!-- Écran d'accueil animé -->
+      <ng-container *ngIf="messages.length === 0">
+        <div class="welcome">
+          <div class="welcome-orb">
+            <div class="welcome-orb-inner">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
+                <path d="M8 12h8M12 8v8"/>
+              </svg>
+            </div>
+          </div>
+          <h2>Bienvenue, {{ auth.currentUser?.username }} ✨</h2>
+          <p>Commencez une conversation avec votre assistant IA intelligent</p>
+
+          <div class="welcome-tips">
+            <button class="tip-chip" *ngFor="let tip of tips" (click)="useTip(tip)">
+              {{ tip }}
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- Messages -->
+      <ng-container *ngFor="let msg of messages">
+        <div class="msg-card" [class.user]="msg.role === 'user'" [class.ai]="msg.role === 'ai'">
+          <div class="msg-avatar">
+            <div class="avatar-circle">
+              <span *ngIf="msg.role === 'user'">👤</span>
+              <span *ngIf="msg.role === 'ai'">🤖</span>
+            </div>
+          </div>
+
+          <div class="msg-content">
+            <div *ngIf="msg.transcript" class="msg-transcript-label">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>
+              </svg>
+              "{{ msg.transcript }}"
+            </div>
+
+            <div class="msg-bubble">
+              <ng-container *ngIf="msg.content || !msg.streaming">
+                {{ msg.content }}
+                <span *ngIf="msg.streaming" class="streaming-cursor"></span>
+              </ng-container>
+
+              <!-- Loading spinner pendant la réponse -->
+              <div *ngIf="msg.streaming && !msg.content && msg.role === 'ai'" class="ai-loading">
+                <div class="loading-dots">
+                  <div class="loading-dot"></div>
+                  <div class="loading-dot"></div>
+                  <div class="loading-dot"></div>
+                </div>
+                <span class="loading-text">IA réfléchit</span>
+              </div>
+            </div>
+
+            <div class="msg-meta">{{ formatTime(msg.time) }}</div>
+          </div>
+        </div>
+      </ng-container>
+
+      <div #messagesEnd></div>
+    </div>
+  </main>
+
+  <!-- Footer avec input -->
+  <footer class="chat-footer">
+    <div class="chat-footer-inner">
+
+      <div class="mode-toggle-container">
+        <div class="mode-toggle">
+          <button class="mode-btn" [class.active]="inputMode === 'text'" (click)="setMode('text')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17 3l4 4-7 7H10v-4l7-7zM4 20l4-4"/>
+              <path d="M12 12l4 4"/>
+            </svg>
+            Texte
+          </button>
+          <button class="mode-btn" [class.active]="inputMode === 'voice'" (click)="setMode('voice')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>
+            </svg>
+            Voix
+          </button>
+        </div>
+      </div>
+
+      <!-- Mode texte -->
+      <div class="input-container" *ngIf="inputMode === 'text'">
+        <textarea
+          #textInput
+          class="input-box"
+          [(ngModel)]="inputText"
+          (keydown)="onKeyDown($event)"
+          placeholder="Écrivez votre message..."
+          rows="1"
+          [disabled]="isProcessing || isSpeaking"
+        ></textarea>
+        <button
+          class="send-btn"
+          (click)="sendText()"
+          [disabled]="!inputText.trim() || isProcessing || isSpeaking"
+          title="Envoyer"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Mode vocal avec visualiseur amélioré -->
+      <div class="voice-container" *ngIf="inputMode === 'voice'">
+        <div class="volume-visualizer">
+          <div
+            class="volume-bar"
+            *ngFor="let bar of volumeBars; let i = index"
+            [style.height.px]="8 + bar * 40"
+            [class.active]="isRecording"
+          ></div>
+        </div>
+
+        <div class="mic-control">
+          <button
+            class="mic-btn"
+            [class.recording]="isRecording"
+            [class.processing]="isProcessing"
+            (click)="toggleRecording()"
+            [disabled]="isProcessing || isSpeaking || status === 'disconnected'"
+          >
+            <div class="mic-ripple" *ngIf="isRecording"></div>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path *ngIf="!isRecording" d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+              <path *ngIf="!isRecording" d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"/>
+              <rect *ngIf="isRecording" x="6" y="4" width="12" height="16" rx="2" fill="currentColor"/>
+              <line *ngIf="isRecording" x1="12" y1="20" x2="12" y2="22"/>
+            </svg>
+          </button>
+          <span class="mic-status">
+            <ng-container *ngIf="!isRecording && !isProcessing && !isSpeaking">🎤 Appuyez pour parler</ng-container>
+            <ng-container *ngIf="isRecording">🔴 Enregistrement en cours...</ng-container>
+            <ng-container *ngIf="isProcessing">⚡ Traitement par l'IA...</ng-container>
+            <ng-container *ngIf="isSpeaking">🔊 Lecture de la réponse</ng-container>
+          </span>
+        </div>
+
+        <div class="volume-visualizer right">
+          <div
+            class="volume-bar"
+            *ngFor="let bar of volumeBars; let i = index"
+            [style.height.px]="8 + bar * 40"
+            [class.active]="isRecording"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Bannière de déconnexion -->
+      <div *ngIf="status === 'disconnected'" class="disconnected-banner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <circle cx="12" cy="16" r="0.5" fill="currentColor" stroke="none"/>
+        </svg>
+        Connexion perdue
+        <button (click)="reconnect()">Reconnecter</button>
+      </div>
+
+    </div>
+  </footer>
+
+</div>

@@ -8,3 +8,5 @@ venv/
 .venv/
 .vscode/
 *.wav
+node_modules/
+.angular/

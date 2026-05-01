@@ -1,0 +1,60 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🎙️</div>
+      <div class="auth-logo-text">Voice<span>Chat</span> AI</div>
+    </div>
+
+    <h1 class="auth-title">Bon retour !</h1>
+    <p class="auth-subtitle">Connectez-vous pour accéder à votre assistant vocal.</p>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          [class.error]="email.invalid && email.touched"
+          placeholder="vous@example.com"
+          autocomplete="email"
+        />
+        <div *ngIf="email.invalid && email.touched" class="form-error">
+          Email invalide
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Mot de passe</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="password.invalid && password.touched"
+          placeholder="••••••••"
+          autocomplete="current-password"
+        />
+        <div *ngIf="password.invalid && password.touched" class="form-error">
+          Mot de passe requis (min. 4 caractères)
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        <span *ngIf="!loading">Se connecter</span>
+        <span *ngIf="loading" class="spinner"></span>
+      </button>
+
+    </form>
+
+    <p class="auth-footer">
+      Pas encore de compte ? <a routerLink="/register">S'inscrire</a>
+    </p>
+
+  </div>
+</div>
