@@ -1,0 +1,94 @@
+.face-wrapper {
+  width: 150px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+svg {
+  fill: #333;
+  width: 100%;
+  height: 100%;
+}
+
+.mouth {
+  fill: none;
+  stroke: #333;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: all 0.3s ease;
+}
+
+/* IDLE: Neutral expression */
+[data-state="idle"] .eye {
+  r: 5;
+}
+
+[data-state="idle"] .mouth {
+  d: path("M 35 65 Q 50 65 65 65");
+}
+
+/* LISTENING: Eyes widen and pulse slightly */
+[data-state="listening"] .eye {
+  animation: pulse 1s infinite;
+}
+
+[data-state="listening"] .mouth {
+  d: path("M 35 65 Q 50 68 65 65");
+}
+
+/* THINKING: Eyes look side to side */
+[data-state="thinking"] .eyes {
+  animation: lookAround 2s infinite;
+}
+
+[data-state="thinking"] .mouth {
+  d: path("M 35 65 Q 50 63 65 65");
+}
+
+/* TALKING: Mouth transforms into a curve */
+[data-state="talking"] .mouth {
+  animation: talkMove 0.4s infinite alternate;
+  d: path("M 35 65 Q 50 85 65 65");
+}
+
+[data-state="talking"] .eye {
+  animation: blink 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    r: 5;
+  }
+  50% {
+    r: 7;
+  }
+}
+
+@keyframes lookAround {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes talkMove {
+  from {
+    d: path("M 35 65 Q 50 70 65 65");
+  }
+  to {
+    d: path("M 35 65 Q 50 85 65 65");
+  }
+}
+
+@keyframes blink {
+  0%, 49%, 100% {
+    r: 5;
+  }
+  50% {
+    r: 1;
+  }
+}

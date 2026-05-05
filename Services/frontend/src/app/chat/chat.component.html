@@ -71,13 +71,8 @@
       <!-- Écran d'accueil animé -->
       <ng-container *ngIf="messages.length === 0">
         <div class="welcome">
-          <div class="welcome-orb">
-            <div class="welcome-orb-inner">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M12 2a10 10 0 0 1 10 10c0 5.52-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2z"/>
-                <path d="M8 12h8M12 8v8"/>
-              </svg>
-            </div>
+          <div class="welcome-face">
+            <app-ai-face></app-ai-face>
           </div>
           <h2>Bienvenue, {{ auth.currentUser?.username }} ✨</h2>
           <p>Commencez une conversation avec votre assistant IA intelligent</p>

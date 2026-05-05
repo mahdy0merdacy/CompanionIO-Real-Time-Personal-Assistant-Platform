@@ -9,16 +9,20 @@ import { Subscription } from 'rxjs';
 
 import { AuthService } from '../core/services/auth.service';
 import { OrchestratorService, ChatMessage, WsStatus } from '../core/services/orchestrator.service';
+import { AiFaceService } from '../core/services/ai-face.service';
+import { AiFaceComponent } from '../components/ai-face/ai-face.component';
 
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, AiFaceComponent],
   templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.css'],
 })
 export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   auth   = inject(AuthService);
   orches = inject(OrchestratorService);
+  face   = inject(AiFaceService);
 
   @ViewChild('messagesEnd') messagesEnd!: ElementRef<HTMLDivElement>;
   @ViewChild('textInput')  textInput!: ElementRef<HTMLTextAreaElement>;
@@ -63,7 +67,10 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.messages = msgs;
       this.shouldScroll = true;
     }));
-    this.subs.add(this.orches.status$.subscribe(s => this.status = s));
+    this.subs.add(this.orches.status$.subscribe(s => {
+      this.status = s;
+      this.updateFaceState(s);
+    }));
     this.subs.add(this.orches.volume$.subscribe(v => this.volume = v));
     this.subs.add(this.orches.ttsEnabled$.subscribe(v => this.ttsEnabled = v));
     this.orches.connect();
@@ -79,6 +86,22 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   ngOnDestroy(): void {
     this.subs.unsubscribe();
     this.orches.disconnect();
+  }
+
+  private updateFaceState(status: WsStatus): void {
+    switch (status) {
+      case 'recording':
+        this.face.set('listening');
+        break;
+      case 'processing':
+        this.face.set('thinking');
+        break;
+      case 'speaking':
+        this.face.set('talking');
+        break;
+      default:
+        this.face.set('idle');
+    }
   }
 
   onKeyDown(e: KeyboardEvent): void {
