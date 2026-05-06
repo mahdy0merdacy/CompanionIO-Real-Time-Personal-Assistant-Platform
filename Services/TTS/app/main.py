@@ -10,6 +10,10 @@ load_dotenv()
 app = FastAPI()
 tts_service = TTSService()
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker container health monitoring."""
+    return {"status": "healthy", "service": "tts"}
 
 @app.websocket("/tts")
 async def tts_socket(ws: WebSocket):

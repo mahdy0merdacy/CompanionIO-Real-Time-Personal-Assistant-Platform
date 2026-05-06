@@ -1,0 +1,88 @@
+services:
+  # Redis - Phase 1 state externalization storage
+  redis:
+    image: redis:7-alpine
+    container_name: companion-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - companion-network
+
+  # Orchestrator Service - Main WebSocket server
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: companion-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      # Redis configuration
+      REDIS_URL: redis://redis:6379
+      # Backend service URLs (pointing to mock services in this compose)
+      STT_URL: ws://stt-service:8001/stt
+      LLM_URL: ws://llm-service:8002/llm
+      TTS_URL: ws://tts-service:8003/tts
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - companion-network
+    restart: unless-stopped
+
+  # Mock STT Service - Echo returns input
+  stt-service:
+    image: python:3.13-slim
+    container_name: companion-stt-mock
+    working_dir: /app
+    command: sh -c "pip install -q fastapi uvicorn && python -m uvicorn mock_stt:app --host 0.0.0.0 --port 8001"
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./mock_services/stt.py:/app/mock_stt.py:ro
+    networks:
+      - companion-network
+    restart: unless-stopped
+
+  # Mock LLM Service - Echo returns input
+  llm-service:
+    image: python:3.13-slim
+    container_name: companion-llm-mock
+    working_dir: /app
+    command: sh -c "pip install -q fastapi uvicorn && python -m uvicorn mock_llm:app --host 0.0.0.0 --port 8002"
+    volumes:
+      - ./mock_services/llm.py:/app/mock_llm.py:ro
+    ports:
+      - "8002:8002"
+    networks:
+      - companion-network
+    restart: unless-stopped
+
+  # Mock TTS Service - Echo returns input
+  tts-service:
+    image: python:3.13-slim
+    container_name: companion-tts-mock
+    working_dir: /app
+    command: sh -c "pip install -q fastapi uvicorn && python -m uvicorn mock_tts:app --host 0.0.0.0 --port 8003"
+    volumes:
+      - ./mock_services/tts.py:/app/mock_tts.py:ro
+    ports:
+      - "8003:8003"
+    networks:
+      - companion-network
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+
+networks:
+  companion-network:
+    driver: bridge

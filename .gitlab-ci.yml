@@ -23,8 +23,7 @@ lint_tts:
 test_tts:
   stage: test
   script:
-    - cd Services/TTS
     - pip install -r requirements.txt
-    - pip install pytest
+    - pip install pytest pytest-asyncio
+    - cd Services/TTS
     - pytest -q
-

@@ -8,3 +8,5 @@ venv/
 .venv/
 .vscode/
 *.wav
+companionIO-redis
+companionIO-redis.pub

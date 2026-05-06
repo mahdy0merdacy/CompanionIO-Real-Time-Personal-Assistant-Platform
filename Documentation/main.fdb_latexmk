@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1776203910.4238 "/home/mahdousha/Projects/companion.io/Documentation/main.tex" "main.pdf" "main" 1776203910.81824 2
+["pdflatex"] 1777332707.82013 "/home/mahdousha/Projects/companion.io/Documentation/main.tex" "main.pdf" "main" 1777332708.27246 2
   "/home/mahdousha/Projects/companion.io/Documentation/main.tex" 1776176859.41461 2610 33cccdc568d8f5fd41783880b9f081f1 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-t1.enc" 1136849721 2971 def0b6c1f0b107b3b936def894055589 ""
   "/usr/share/texlive/texmf-dist/fonts/enc/dvips/cm-super/cm-super-ts1.enc" 1136849721 2900 1537cc8184ad1792082cd229ecc269f4 ""
@@ -75,12 +75,12 @@
   "/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map" 1776168962.74817 293079 eb34fef57086acb79b142616bb11dc70 ""
   "/var/lib/texmf/web2c/pdftex/pdflatex.fmt" 1776168933 6447588 470ba335da6136ac75ddc3a6cf9d3fc7 ""
   "chapters/Chapter1.tex" 1776203902.37892 7054 ee51375690df46b05fcfc57ff1135281 ""
-  "main.aux" 1776203910.72246 2623 cda259d89f38fbdf750aea57b7d715d7 "pdflatex"
-  "main.lof" 1776203910.72427 46 52679462a66e1bbc8d0993b99762a346 "pdflatex"
-  "main.lot" 1776203910.72427 46 52679462a66e1bbc8d0993b99762a346 "pdflatex"
-  "main.out" 1776203910.72246 2138 1aebbae372a7d3959c94f49a160ddc0e "pdflatex"
+  "main.aux" 1777332708.16961 2623 cda259d89f38fbdf750aea57b7d715d7 "pdflatex"
+  "main.lof" 1777332708.17176 46 52679462a66e1bbc8d0993b99762a346 "pdflatex"
+  "main.lot" 1777332708.17176 46 52679462a66e1bbc8d0993b99762a346 "pdflatex"
+  "main.out" 1777332708.17061 2138 1aebbae372a7d3959c94f49a160ddc0e "pdflatex"
   "main.tex" 1776176859.41461 2610 33cccdc568d8f5fd41783880b9f081f1 ""
-  "main.toc" 1776203910.72427 1287 a249e94c4ee41857856fe94a44630c17 "pdflatex"
+  "main.toc" 1777332708.17176 1287 a249e94c4ee41857856fe94a44630c17 "pdflatex"
   (generated)
   "main.aux"
   "main.lof"

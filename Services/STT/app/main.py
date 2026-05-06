@@ -8,6 +8,11 @@ load_dotenv()
 app = FastAPI()
 speech_service = SpeechService()
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker container health monitoring."""
+    return {"status": "healthy", "service": "stt"}
+
 @app.websocket("/stt")
 async def stt_socket(ws: WebSocket):
     await ws.accept()

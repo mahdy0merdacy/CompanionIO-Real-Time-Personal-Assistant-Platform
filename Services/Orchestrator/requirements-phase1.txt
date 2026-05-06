@@ -1,0 +1,42 @@
+# Orchestrator Service Requirements - Phase 1 (Redis State Externalization)
+# ==============================================================================
+#
+# Purpose:
+#   Minimal dependencies for orchestrator service with Redis support.
+#   Phase 1 adds Redis for state externalization (conversation history, mailbox).
+#
+# Installation:
+#   pip install -r requirements-phase1.txt
+#
+# ──────────────────────────────────────────────────────────────────────────────
+# CORE FRAMEWORK & ASYNC
+# ──────────────────────────────────────────────────────────────────────────────
+fastapi==0.135.3           # FastAPI framework
+uvicorn==0.34.0            # ASGI server
+websockets==14.1           # WebSocket protocol
+pydantic==2.10.5           # Data validation
+pydantic-settings==2.6.1   # Environment configuration
+
+# ──────────────────────────────────────────────────────────────────────────────
+# EXTERNAL SERVICE CLIENTS
+# ──────────────────────────────────────────────────────────────────────────────
+groq==1.1.2                # Groq LLM API client
+
+# ──────────────────────────────────────────────────────────────────────────────
+# REDIS (NEW Phase 1)
+# ──────────────────────────────────────────────────────────────────────────────
+# redis[asyncio] installs redis and dependencies with async/await support
+redis==5.2.1               # Redis client
+
+# ──────────────────────────────────────────────────────────────────────────────
+# UTILITIES
+# ──────────────────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1       # .env file support
+aiofiles==25.1.0           # Async file I/O (for future file uploads)
+
+# ──────────────────────────────────────────────────────────────────────────────
+# OBSERVABILITY (Future Phase 5, optional for now)
+# ──────────────────────────────────────────────────────────────────────────────
+# opentelemetry-api==1.25.0
+# opentelemetry-sdk==1.25.0
+# opentelemetry-exporter-datadog==1.8.0

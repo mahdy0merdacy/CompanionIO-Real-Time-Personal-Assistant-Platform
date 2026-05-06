@@ -5,6 +5,10 @@ load_dotenv()
 app = FastAPI()
 llm_service = LLMService()
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint for Docker container health monitoring."""
+    return {"status": "healthy", "service": "llm"}
 
 @app.websocket("/llm")
 async def llm_socket(ws: WebSocket):
