@@ -95,4 +95,10 @@ public class AuthController : ControllerBase
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    [HttpGet("health")]
+    public IActionResult Health()
+    {
+        return Ok(new { status = "healthy", service = "auth", timestamp = DateTime.UtcNow });
+    }
 }

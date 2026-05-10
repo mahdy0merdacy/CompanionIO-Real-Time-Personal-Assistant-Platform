@@ -1,0 +1,108 @@
+# CompanionIO Monitoring Configuration
+
+# This file contains monitoring and alerting configurations
+# for the CompanionIO services
+
+# Health Check Configuration
+HEALTH_CHECKS:
+  orchestrator:
+    url: http://localhost:8000/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+  auth:
+    url: http://localhost:5000/api/auth/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+  llm:
+    url: http://localhost:8001/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+  stt:
+    url: http://localhost:8002/health
+    interval: 30s
+    timeout: 10s
+    retries: 3
+
+# Metrics to Monitor
+METRICS:
+  - response_time
+  - error_rate
+  - throughput
+  - cpu_usage
+  - memory_usage
+  - disk_usage
+
+# Alert Thresholds
+ALERTS:
+  high_error_rate:
+    threshold: 5%  # Alert if error rate > 5%
+    duration: 5m   # For more than 5 minutes
+
+  high_response_time:
+    threshold: 2s  # Alert if avg response time > 2s
+    duration: 5m
+
+  high_cpu:
+    threshold: 80% # Alert if CPU usage > 80%
+    duration: 10m
+
+  high_memory:
+    threshold: 85% # Alert if memory usage > 85%
+    duration: 10m
+
+# Log Aggregation
+LOG_CONFIG:
+  level: INFO
+  format: json
+  outputs:
+    - console
+    - file: /var/log/companion.log
+    - remote: https://logs.example.com
+
+# Tracing Configuration
+TRACING:
+  service_name: companion-io
+  jaeger_endpoint: http://jaeger:14268/api/traces
+  sampling_rate: 0.1
+
+# Notification Channels
+NOTIFICATIONS:
+  slack:
+    webhook_url: ${SLACK_WEBHOOK_URL}
+    channel: "#alerts"
+
+  email:
+    smtp_server: smtp.gmail.com
+    smtp_port: 587
+    username: ${ALERT_EMAIL_USER}
+    password: ${ALERT_EMAIL_PASS}
+    recipients:
+      - admin@companion.io
+
+# Dashboard Configuration
+DASHBOARD:
+  title: "CompanionIO Service Dashboard"
+  refresh_interval: 30s
+  panels:
+    - health_status
+    - response_times
+    - error_rates
+    - resource_usage
+    - throughput
+
+# Backup Configuration
+BACKUP:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention_days: 30
+  s3_bucket: companion-backups
+  databases:
+    - postgres
+  volumes:
+    - redis_data
+    - postgres_data

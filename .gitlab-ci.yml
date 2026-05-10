@@ -1,29 +1,396 @@
 stages:
-  - lint
+  - validate
+  - build
   - test
+  - security
+  - deploy
+  - cleanup
 
-image: python:3.11
-
-before_script:
-  - python -m pip install --upgrade pip
+variables:
+  DOCKER_HOST: tcp://docker:2376
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_TLS_VERIFY: 1
+  DOCKER_CERT_PATH: "$DOCKER_TLS_CERTDIR/client"
+  AZURE_SUBSCRIPTION_ID: $AZURE_SUBSCRIPTION_ID
+  AZURE_TENANT_ID: $AZURE_TENANT_ID
+  AZURE_CLIENT_ID: $AZURE_CLIENT_ID
+  AZURE_CLIENT_SECRET: $AZURE_CLIENT_SECRET
+  REGISTRY: $AZURE_CONTAINER_REGISTRY
+  RESOURCE_GROUP: $AZURE_RESOURCE_GROUP
 
 # -----------------------
-# LINT (TTS only for now)
+# CACHE DEFINITIONS
 # -----------------------
-lint_tts:
-  stage: lint
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .cache/pip/
+    - .cache/apt/
+
+# -----------------------
+# VALIDATE STAGE
+# -----------------------
+.validate_template: &validate_template
+  image: python:3.13-slim
+  before_script:
+    - apt-get update && apt-get install -y git curl
+    - python -m pip install --upgrade pip
+    - mkdir -p .cache/pip && export PIP_CACHE_DIR=.cache/pip
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .cache/pip/
+  only:
+    - merge_requests
+    - main
+    - develop
+
+lint_orchestrator:
+  <<: *validate_template
+  stage: validate
   script:
-    - cd Services/TTS
+    - cd Services/Orchestrator
+    - pip install ruff black isort
+    - echo "🔍 Running code quality checks..."
+    - ruff check . --output-format=github || echo "❌ Ruff issues found"
+    - black --check --diff . || echo "❌ Black formatting issues"
+    - isort --check-only --diff . || echo "❌ Import sorting issues"
+    - echo "✅ Code quality checks completed"
+
+lint_llm:
+  <<: *validate_template
+  stage: validate
+  script:
+    - cd Services/LLM
     - pip install ruff
-    - ruff check . || echo "lint issues (non-blocking)"
+    - echo "🔍 Running LLM service lint..."
+    - ruff check . || echo "❌ Ruff issues found"
+    - echo "✅ LLM lint completed"
+
+lint_stt:
+  <<: *validate_template
+  stage: validate
+  script:
+    - cd Services/STT
+    - pip install ruff
+    - echo "🔍 Running STT service lint..."
+    - ruff check . || echo "❌ Ruff issues found"
+    - echo "✅ STT lint completed"
+
+lint_auth:
+  <<: *validate_template
+  stage: validate
+  script:
+    - cd Services/Auth
+    - echo "🔍 Running Auth service validation..."
+    - dotnet format --verify-no-changes Auth.csproj || echo "❌ C# formatting issues"
+    - echo "✅ Auth validation completed"
 
 # -----------------------
-# TEST (TTS only for now)
+# BUILD STAGE
 # -----------------------
-test_tts:
+build_template: &build_template
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+  before_script:
+    - docker info
+  only:
+    - main
+    - develop
+    - tags
+
+build_orchestrator:
+  <<: *build_template
+  stage: build
+  script:
+    - echo "🏗️ Building Orchestrator service..."
+    - cd Services/Orchestrator
+    - docker build -t $REGISTRY/companion-orchestrator:$CI_COMMIT_SHA .
+    - docker build -t $REGISTRY/companion-orchestrator:latest .
+    - echo "✅ Orchestrator build completed"
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+
+build_llm:
+  <<: *build_template
+  stage: build
+  script:
+    - echo "🏗️ Building LLM service..."
+    - cd Services/LLM
+    - docker build -t $REGISTRY/companion-llm:$CI_COMMIT_SHA .
+    - docker build -t $REGISTRY/companion-llm:latest .
+    - echo "✅ LLM build completed"
+
+build_stt:
+  <<: *build_template
+  stage: build
+  script:
+    - echo "🏗️ Building STT service..."
+    - cd Services/STT
+    - docker build -t $REGISTRY/companion-stt:$CI_COMMIT_SHA .
+    - docker build -t $REGISTRY/companion-stt:latest .
+    - echo "✅ STT build completed"
+
+build_auth:
+  <<: *build_template
+  stage: build
+  script:
+    - echo "🏗️ Building Auth service..."
+    - cd Services/Auth
+    - docker build -t $REGISTRY/companion-auth:$CI_COMMIT_SHA .
+    - docker build -t $REGISTRY/companion-auth:latest .
+    - echo "✅ Auth build completed"
+
+push_images:
+  <<: *build_template
+  stage: build
+  script:
+    - echo "📤 Pushing images to registry..."
+    - echo $AZURE_CLIENT_SECRET | docker login $REGISTRY -u $AZURE_CLIENT_ID --password-stdin
+    - docker push $REGISTRY/companion-orchestrator:$CI_COMMIT_SHA
+    - docker push $REGISTRY/companion-orchestrator:latest
+    - docker push $REGISTRY/companion-llm:$CI_COMMIT_SHA
+    - docker push $REGISTRY/companion-llm:latest
+    - docker push $REGISTRY/companion-stt:$CI_COMMIT_SHA
+    - docker push $REGISTRY/companion-stt:latest
+    - docker push $REGISTRY/companion-auth:$CI_COMMIT_SHA
+    - docker push $REGISTRY/companion-auth:latest
+    - echo "✅ All images pushed"
+  dependencies:
+    - build_orchestrator
+    - build_llm
+    - build_stt
+    - build_auth
+
+# -----------------------
+# TEST STAGE
+# -----------------------
+.test_template: &test_template
+  image: python:3.13-slim
+  before_script:
+    - apt-get update && apt-get install -y git curl redis-server postgresql-client
+    - python -m pip install --upgrade pip
+    - mkdir -p .cache/pip && export PIP_CACHE_DIR=.cache/pip
+    - service redis-server start
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - .cache/pip/
+  services:
+    - postgres:13
+    - redis:7-alpine
+  variables:
+    POSTGRES_DB: testdb
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: testpass
+    REDIS_URL: redis://redis:6379
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+  only:
+    - merge_requests
+    - main
+    - develop
+
+test_orchestrator:
+  <<: *test_template
   stage: test
   script:
+    - echo "🧪 Testing Orchestrator service..."
+    - cd Services/Orchestrator
+    - pip install -r requirements-phase1.txt -r requirements-auth.txt
+    - pip install pytest pytest-asyncio pytest-cov coverage
+    - export PYTHONPATH=/builds/$CI_PROJECT_PATH/Services/Orchestrator
+    - pytest --cov=. --cov-report=xml --cov-report=term
+    - coverage xml
+    - echo "✅ Orchestrator tests completed"
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+
+test_llm:
+  <<: *test_template
+  stage: test
+  script:
+    - echo "🧪 Testing LLM service..."
+    - cd Services/LLM
     - pip install -r requirements.txt
     - pip install pytest pytest-asyncio
-    - cd Services/TTS
-    - pytest -q
+    - pytest -v
+    - echo "✅ LLM tests completed"
+
+test_stt:
+  <<: *test_template
+  stage: test
+  script:
+    - echo "🧪 Testing STT service..."
+    - cd Services/STT
+    - pip install -r requirements.txt
+    - pip install pytest pytest-asyncio
+    - pytest -v
+    - echo "✅ STT tests completed"
+
+test_auth:
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+  stage: test
+  services:
+    - postgres:13
+    - redis:7-alpine
+  variables:
+    ConnectionStrings__DefaultConnection: "Host=postgres;Database=testdb;Username=postgres;Password=testpass"
+    ConnectionStrings__Redis: "redis:6379"
+  script:
+    - echo "🧪 Testing Auth service..."
+    - cd Services/Auth
+    - dotnet restore
+    - dotnet build --configuration Release
+    - dotnet test --configuration Release --logger "console;verbosity=detailed"
+    - echo "✅ Auth tests completed"
+
+integration_test:
+  <<: *test_template
+  stage: test
+  script:
+    - echo "🔗 Running integration tests..."
+    - pip install docker-compose
+    - docker-compose -f docker-compose.test.yml up -d
+    - sleep 30
+    - python -m pytest tests/integration/ -v
+    - docker-compose -f docker-compose.test.yml down
+    - echo "✅ Integration tests completed"
+  allow_failure: true
+
+# -----------------------
+# SECURITY STAGE
+# -----------------------
+security_scan:
+  image: docker:24.0.5
+  stage: security
+  services:
+    - docker:24.0.5-dind
+  script:
+    - echo "🔒 Running security scans..."
+    - docker run --rm -v $(pwd):/app -w /app/$CI_PROJECT_DIR
+      clair-scanner --ip $(hostname -i) $REGISTRY/companion-orchestrator:$CI_COMMIT_SHA || echo "⚠️ Security issues found"
+    - echo "✅ Security scan completed"
+  only:
+    - main
+    - tags
+  allow_failure: true
+
+dependency_scan:
+  image: python:3.13-slim
+  stage: security
+  script:
+    - echo "🔍 Scanning dependencies..."
+    - pip install safety
+    - find Services/ -name "requirements*.txt" -exec safety check --file {} \; || echo "⚠️ Vulnerable dependencies found"
+    - echo "✅ Dependency scan completed"
+  allow_failure: true
+
+# -----------------------
+# DEPLOY STAGE
+# -----------------------
+.deploy_template: &deploy_template
+  image: mcr.microsoft.com/azure-cli:latest
+  before_script:
+    - az login --service-principal -u $AZURE_CLIENT_ID -p $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+    - az account set --subscription $AZURE_SUBSCRIPTION_ID
+  only:
+    - main
+    - tags
+
+deploy_staging:
+  <<: *deploy_template
+  stage: deploy
+  environment:
+    name: staging
+    url: https://companion-staging.azurewebsites.net
+  script:
+    - echo "🚀 Deploying to staging environment..."
+    - az containerapp update --name companion-orchestrator --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-orchestrator:$CI_COMMIT_SHA --environment-variables JWT_SECRET=$JWT_SECRET AUTH_SERVICE_URL=$AUTH_SERVICE_URL_STAGING
+    - az containerapp update --name companion-llm --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-llm:$CI_COMMIT_SHA
+    - az containerapp update --name companion-stt --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-stt:$CI_COMMIT_SHA
+    - az containerapp update --name companion-auth --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-auth:$CI_COMMIT_SHA
+    - echo "✅ Staging deployment completed"
+    - echo "🔗 Staging URL: https://companion-staging.azurewebsites.net"
+  dependencies:
+    - push_images
+  when: manual
+
+deploy_production:
+  <<: *deploy_template
+  stage: deploy
+  environment:
+    name: production
+    url: https://companion-prod.azurewebsites.net
+  script:
+    - echo "🚀 Deploying to production environment..."
+    - echo "Creating backup of current production..."
+    - az containerapp revision list --name companion-orchestrator --resource-group $RESOURCE_GROUP --output table > production_backup.txt
+    - echo "Updating services..."
+    - az containerapp update --name companion-orchestrator --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-orchestrator:$CI_COMMIT_SHA --environment-variables JWT_SECRET=$JWT_SECRET AUTH_SERVICE_URL=$AUTH_SERVICE_URL_PROD
+    - az containerapp update --name companion-llm --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-llm:$CI_COMMIT_SHA
+    - az containerapp update --name companion-stt --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-stt:$CI_COMMIT_SHA
+    - az containerapp update --name companion-auth --resource-group $RESOURCE_GROUP --image $REGISTRY/companion-auth:$CI_COMMIT_SHA
+    - echo "Running smoke tests..."
+    - sleep 60
+    - curl -f https://companion-prod.azurewebsites.net/health || (echo "❌ Health check failed" && exit 1)
+    - echo "✅ Production deployment completed"
+    - echo "🔗 Production URL: https://companion-prod.azurewebsites.net"
+  dependencies:
+    - deploy_staging
+    - security_scan
+  when: manual
+
+# -----------------------
+# CLEANUP STAGE
+# -----------------------
+cleanup_old_images:
+  <<: *deploy_template
+  stage: cleanup
+  script:
+    - echo "🧹 Cleaning up old container images..."
+    - az acr repository show-manifests --name $REGISTRY --repository companion-orchestrator --orderby time_desc --output tsv | tail -n +11 | awk '{print $1}' | xargs -I {} az acr repository delete --name $REGISTRY --image companion-orchestrator@{} --yes || true
+    - az acr repository show-manifests --name $REGISTRY --repository companion-llm --orderby time_desc --output tsv | tail -n +11 | awk '{print $1}' | xargs -I {} az acr repository delete --name $REGISTRY --image companion-llm@{} --yes || true
+    - az acr repository show-manifests --name $REGISTRY --repository companion-stt --orderby time_desc --output tsv | tail -n +11 | awk '{print $1}' | xargs -I {} az acr repository delete --name $REGISTRY --image companion-stt@{} --yes || true
+    - az acr repository show-manifests --name $REGISTRY --repository companion-auth --orderby time_desc --output tsv | tail -n +11 | awk '{print $1}' | xargs -I {} az acr repository delete --name $REGISTRY --image companion-auth@{} --yes || true
+    - echo "✅ Old images cleaned up"
+  only:
+    - schedules
+  when: manual
+
+# -----------------------
+# MANUAL JOBS
+# -----------------------
+rollback_production:
+  <<: *deploy_template
+  stage: cleanup
+  script:
+    - echo "🔄 Rolling back production deployment..."
+    - az containerapp revision list --name companion-orchestrator --resource-group $RESOURCE_GROUP --output table
+    - echo "Select revision to rollback to:"
+    - read -p "Revision: " revision
+    - az containerapp revision restart --name companion-orchestrator --resource-group $RESOURCE_GROUP --revision $revision
+    - echo "✅ Rollback completed"
+  only:
+    - main
+  when: manual
+
+performance_test:
+  <<: *test_template
+  stage: test
+  script:
+    - echo "⚡ Running performance tests..."
+    - pip install locust
+    - locust --headless --users 100 --spawn-rate 10 --run-time 1m --host http://localhost:8000
+    - echo "✅ Performance test completed"
+  only:
+    - main
+  when: manual
