@@ -11,24 +11,30 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements
-COPY requirements-phase1.txt .
+COPY requirements-phase1.txt requirements-auth.txt ./
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements-phase1.txt
+RUN pip install --no-cache-dir -r requirements-phase1.txt -r requirements-auth.txt
 
 # Stage 2: Runtime
 FROM python:3.13-slim
 
 WORKDIR /app
 
+# Install curl for health checks
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy Python packages from builder
-    COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+COPY --from=builder /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
+
 # Copy application code
 COPY . .
 
 # Health check
 HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/health', timeout=2)" || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 # Expose port
 EXPOSE 8000

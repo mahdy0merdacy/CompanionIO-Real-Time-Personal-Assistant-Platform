@@ -1,0 +1,19 @@
+&lt;Project Sdk="Microsoft.NET.Sdk.Web"&gt;
+
+  &lt;PropertyGroup&gt;
+    &lt;TargetFramework&gt;net8.0&lt;/TargetFramework&gt;
+    &lt;Nullable&gt;enable&lt;/Nullable&gt;
+    &lt;ImplicitUsings&gt;enable&lt;/ImplicitUsings&gt;
+  &lt;/PropertyGroup&gt;
+
+  &lt;ItemGroup&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="8.0.0" /&gt;
+    &lt;PackageReference Include="Serilog.AspNetCore" Version="8.0.0" /&gt;
+  &lt;/ItemGroup&gt;
+
+&lt;/Project&gt;
