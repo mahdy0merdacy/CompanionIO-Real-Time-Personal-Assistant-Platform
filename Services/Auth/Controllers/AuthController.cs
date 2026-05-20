@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Auth.Models;
 
 namespace Auth.Controllers;
 
@@ -11,94 +14,154 @@ namespace Auth.Controllers;
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly UserManager&lt;ApplicationUser&gt; _userManager;
-    private readonly SignInManager&lt;ApplicationUser&gt; _signInManager;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly IConfiguration _configuration;
 
-    public AuthController(UserManager&lt;ApplicationUser&gt; userManager, SignInManager&lt;ApplicationUser&gt; signInManager, IConfiguration configuration)
+    public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, IConfiguration configuration)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _configuration = configuration;
     }
 
-    [HttpGet("login")]
-    public IActionResult Login()
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var redirectUrl = Url.Action("GoogleResponse", "Auth");
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
-        return Challenge(properties, "Google");
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUser != null)
+            return BadRequest(new { error = "A user with this email already exists." });
+
+        var user = new ApplicationUser
+        {
+            UserName = request.Email,
+            Email = request.Email,
+            FullName = request.FullName,
+            EmailConfirmed = true
+        };
+
+        var createResult = await _userManager.CreateAsync(user, request.Password);
+        if (!createResult.Succeeded)
+            return BadRequest(createResult.Errors);
+
+        return Ok(new { message = "User registered successfully", userId = user.Id });
     }
 
-    [HttpGet("callback")]
-    public async Task&lt;IActionResult&gt; GoogleResponse()
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+            return Unauthorized(new { error = "Invalid email or password." });
+
+        var passwordValid = await _userManager.CheckPasswordAsync(user, request.Password);
+        if (!passwordValid)
+            return Unauthorized(new { error = "Invalid email or password." });
+
+        var token = GenerateJwt(user.Email ?? string.Empty);
+        return Ok(new { token });
+    }
+
+    [HttpGet("google-login")]
+    public IActionResult GoogleLogin()
+    {
+        var redirectUrl = Url.Action("GoogleResponse", "Auth");
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties(GoogleDefaults.AuthenticationScheme, redirectUrl);
+        return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("google-callback")]
+    public async Task<IActionResult> GoogleResponse()
     {
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
-            return BadRequest("External login error");
+            return BadRequest(new { error = "External login failed." });
 
-        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-        var user = await _userManager.FindByEmailAsync(email);
-
-        if (user == null)
+        var signInResult = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
+        if (!signInResult.Succeeded)
         {
-            user = new ApplicationUser { UserName = email, Email = email };
-            var result = await _userManager.CreateAsync(user);
-            if (!result.Succeeded)
-                return BadRequest("User creation failed");
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest(new { error = "Google account did not provide an email." });
 
-            // Assign default role
-            await _userManager.AddToRoleAsync(user, "User");
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                user = new ApplicationUser
+                {
+                    UserName = email,
+                    Email = email,
+                    EmailConfirmed = true
+                };
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                    return BadRequest(createResult.Errors);
+            }
+
+            var addLoginResult = await _userManager.AddLoginAsync(user, info);
+            if (!addLoginResult.Succeeded)
+                return BadRequest(addLoginResult.Errors);
+
+            await _signInManager.SignInAsync(user, isPersistent: false);
         }
 
-        var token = GenerateJwtToken(user);
-        return Ok(new { Token = token, User = user.Email });
+        var token = GenerateJwt(info.Principal.FindFirstValue(ClaimTypes.Email) ?? string.Empty);
+        return Ok(new { token });
     }
 
-    [HttpPost("logout")]
-    [Authorize]
-    public async Task&lt;IActionResult&gt; Logout()
+    [HttpPost("refresh")]
+    public IActionResult RefreshToken()
     {
-        await _signInManager.SignOutAsync();
-        return Ok("Logged out");
+        var email = User.FindFirstValue(ClaimTypes.Email);
+        if (email == null)
+            return Unauthorized();
+
+        var token = GenerateJwt(email);
+        return Ok(new { token });
     }
 
     [HttpGet("me")]
-    [Authorize]
-    public IActionResult GetCurrentUser()
+    public async Task<IActionResult> GetCurrentUser()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        var roles = User.FindAll(ClaimTypes.Role).Select(c =&gt; c.Value).ToList();
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            return Unauthorized();
 
-        return Ok(new { UserId = userId, Email = email, Roles = roles });
+        return Ok(new { id = user.Id, email = user.Email, userName = user.UserName, fullName = user.FullName });
     }
 
-    private string GenerateJwtToken(ApplicationUser user)
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout()
     {
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        };
+        await _signInManager.SignOutAsync();
+        return Ok(new { message = "Logged out successfully" });
+    }
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+    private string GenerateJwt(string email)
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? string.Empty));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(1),
-            signingCredentials: creds);
+            claims: new[] { new Claim(ClaimTypes.Email, email) },
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
-
-    [HttpGet("health")]
-    public IActionResult Health()
-    {
-        return Ok(new { status = "healthy", service = "auth", timestamp = DateTime.UtcNow });
-    }
 }
+
+public record RegisterRequest(
+    [Required][EmailAddress] string Email,
+    [Required][MinLength(6)] string Password,
+    string? FullName
+);
+
+public record LoginRequest(
+    [Required][EmailAddress] string Email,
+    [Required] string Password
+);

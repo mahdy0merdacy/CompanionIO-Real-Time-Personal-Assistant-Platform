@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Auth.Controllers;
 
@@ -11,10 +14,10 @@ namespace Auth.Controllers;
 [Route("api/[controller]")]
 public class AgentsController : ControllerBase
 {
-    private readonly UserManager&lt;ApplicationUser&gt; _userManager;
+    private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
 
-    public AgentsController(UserManager&lt;ApplicationUser&gt; userManager, IConfiguration configuration)
+    public AgentsController(UserManager<ApplicationUser> userManager, IConfiguration configuration)
     {
         _userManager = userManager;
         _configuration = configuration;
@@ -22,68 +25,51 @@ public class AgentsController : ControllerBase
 
     [HttpPost("register")]
     [Authorize(Roles = "Admin")]
-    public async Task&lt;IActionResult&gt; RegisterAgent([FromBody] AgentRegistrationRequest request)
+    public async Task<IActionResult> RegisterAgent([FromBody] AgentRegistrationRequest request)
     {
         // Create a service account for agents (MCP servers, LLM, etc.)
         var agent = new ApplicationUser
         {
             UserName = request.Name,
-            Email = $"{request.Name}@agents.companionio.local",
-            FullName = request.Name
+            Email = request.Email
         };
 
-        var result = await _userManager.CreateAsync(agent, request.ApiKey);
+        var result = await _userManager.CreateAsync(agent, request.Password);
         if (!result.Succeeded)
-            return BadRequest("Agent registration failed");
+            return BadRequest(result.Errors);
 
         await _userManager.AddToRoleAsync(agent, "Agent");
-
-        return Ok(new { AgentId = agent.Id, ApiKey = request.ApiKey });
+        return Ok(new { message = "Agent registered successfully", agentId = agent.Id });
     }
 
     [HttpPost("authenticate")]
-    public async Task&lt;IActionResult&gt; AuthenticateAgent([FromBody] AgentAuthRequest request)
+    public async Task<IActionResult> AuthenticateAgent([FromBody] AgentAuthRequest request)
     {
         var agent = await _userManager.FindByNameAsync(request.Name);
-        if (agent == null || !await _userManager.CheckPasswordAsync(agent, request.ApiKey))
+        if (agent == null || !await _userManager.CheckPasswordAsync(agent, request.Password))
             return Unauthorized();
 
-        var token = GenerateJwtToken(agent);
-        return Ok(new { Token = token });
+        var token = GenerateJwt(agent);
+        return Ok(new { token });
     }
 
-    private string GenerateJwtToken(ApplicationUser user)
+    private string GenerateJwt(ApplicationUser user)
     {
-        var claims = new[]
-        {
-            new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-            new Claim(JwtRegisteredClaimNames.Email, user.Email),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            new Claim(ClaimTypes.Role, "Agent")
-        };
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var key = new SymmetricSecurityKey(
+            System.Text.Encoding.UTF8.GetBytes(_configuration["Jwt:Key"] ?? ""));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddHours(24), // Longer for agents
-            signingCredentials: creds);
+            claims: new[] { new Claim(ClaimTypes.NameIdentifier, user.Id) },
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: credentials
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
 
-public class AgentRegistrationRequest
-{
-    public string Name { get; set; }
-    public string ApiKey { get; set; }
-}
-
-public class AgentAuthRequest
-{
-    public string Name { get; set; }
-    public string ApiKey { get; set; }
-}
+public record AgentRegistrationRequest(string Name, string Email, string Password);
+public record AgentAuthRequest(string Name, string Password);
