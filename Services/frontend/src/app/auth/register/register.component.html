@@ -1,0 +1,92 @@
+<div class="auth-wrapper">
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="auth-logo-icon">
+        <svg width="44" height="44" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#gradLogo1)" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#gradLogo2)" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#gradLogo1)" stroke-width="1.8" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="gradLogo1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#6366f1"/>
+              <stop offset="100%" stop-color="#a855f7"/>
+            </linearGradient>
+            <linearGradient id="gradLogo2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a855f7"/>
+              <stop offset="100%" stop-color="#6366f1"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="auth-logo-text">COMPANION<span>IO</span> </div>
+    </div>
+
+    <h1 class="auth-title">Create an account</h1>
+    <p class="auth-subtitle">Join COMPANIONIO and start conversing.</p>
+
+    <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+      <div class="form-group">
+        <label class="form-label" for="username">Username</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          class="form-input"
+          [class.error]="username.invalid && username.touched"
+          placeholder="your_username"
+          autocomplete="username"
+        />
+        <div *ngIf="username.invalid && username.touched" class="form-error">
+          Username required (min. 2 characters)
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="form-input"
+          [class.error]="email.invalid && email.touched"
+          placeholder="you@example.com"
+          autocomplete="email"
+        />
+        <div *ngIf="email.invalid && email.touched" class="form-error">
+          Invalid email address
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <input
+          id="password"
+          type="password"
+          formControlName="password"
+          class="form-input"
+          [class.error]="password.invalid && password.touched"
+          placeholder="••••••••"
+          autocomplete="new-password"
+        />
+        <div *ngIf="password.invalid && password.touched" class="form-error">
+          Password required (min. 6 characters)
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="loading">
+        <span *ngIf="!loading">Create account</span>
+        <span *ngIf="loading" class="spinner"></span>
+      </button>
+
+    </form>
+
+    <p class="auth-footer">
+      Already have an account? <a routerLink="/login">Sign in</a>
+    </p>
+
+  </div>
+</div>

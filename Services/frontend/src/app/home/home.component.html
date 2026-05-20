@@ -1,0 +1,211 @@
+<div class="landing-container">
+  <!-- Glowing Background Orbs -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Header/Navbar -->
+  <header class="navbar">
+    <div class="logo-area">
+      <svg class="logo-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 17L12 22L22 17" stroke="url(#grad2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M2 12L12 17L22 12" stroke="url(#grad1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <defs>
+          <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+          </linearGradient>
+          <linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#a855f7"/>
+            <stop offset="100%" stop-color="#6366f1"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <span class="logo-text">Companion<span class="highlight">AI</span></span>
+    </div>
+
+    <nav class="nav-links">
+      <a routerLink="/" class="active">Home</a>
+      <a routerLink="/chat">Interactive Chat</a>
+      <a routerLink="/dashboard">Dashboard</a>
+    </nav>
+
+    <div class="auth-buttons">
+      <ng-container *ngIf="isLoggedIn; else guestButtons">
+        <span class="welcome-tag">Welcome back, <strong>{{ username }}</strong>!</span>
+        <button routerLink="/chat" class="btn btn-primary btn-glow">Access Chat</button>
+      </ng-container>
+
+      <ng-template #guestButtons>
+        <button routerLink="/login" class="btn btn-secondary">Login</button>
+        <button routerLink="/register" class="btn btn-primary btn-glow">Register</button>
+      </ng-template>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="badge">NEW GENERATION</div>
+
+      <h1 class="hero-title">
+        Your Intelligent <br/>
+        <span class="gradient-text">Voice & Life Companion</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        An advanced conversational AI featuring real-time voice listening, continuous emotion analysis, and a connected safety shield to instantly alert your loved ones in case of danger.
+      </p>
+
+      <div class="hero-ctas">
+        <ng-container *ngIf="isLoggedIn; else guestCtas">
+          <button routerLink="/chat" class="btn btn-lg btn-primary btn-glow">Start a Conversation</button>
+          <button routerLink="/dashboard" class="btn btn-lg btn-secondary">View My Statistics</button>
+        </ng-container>
+
+        <ng-template #guestCtas>
+          <button routerLink="/register" class="btn btn-lg btn-primary btn-glow">Get Started for Free</button>
+          <button routerLink="/login" class="btn btn-lg btn-secondary">Explore the Dashboard</button>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="glass-card main-visual-card">
+        <div class="pulse-ring"></div>
+
+        <div class="ai-orb">
+          <div class="orb-inner"></div>
+        </div>
+
+        <div class="wave-container">
+          <div class="wave wave-1"></div>
+          <div class="wave wave-2"></div>
+          <div class="wave wave-3"></div>
+        </div>
+
+        <div class="card-status">
+          <span class="pulse-dot green"></span> Intelligent listening active
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="features-section">
+    <h2 class="section-title">Technology & <span class="gradient-text">Protection</span></h2>
+
+    <p class="section-subtitle">
+      Discover all the interactive modules designed to support you safely in your daily life.
+    </p>
+
+    <div class="features-grid">
+
+      <!-- Feature 1 -->
+      <div class="glass-card feature-card">
+        <div class="feature-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C10.9 2 10 2.9 10 4V11C10 12.1 10.9 13 12 13C13.1 13 14 12.1 14 11V4C14 2.9 13.1 2 12 2Z" fill="url(#gradMic)"/>
+            <path d="M19 11C19 14.9 15.9 18 12 18C8.1 18 5 14.9 5 11" stroke="url(#gradMic)" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 21V18" stroke="url(#gradMic)" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <h3>Real-Time Voice Conversation</h3>
+
+        <p>
+          Speak naturally with our AI. Thanks to ultra-fast Speech-to-Text and expressive Text-to-Speech, conversations are smooth and instant.
+        </p>
+      </div>
+
+      <!-- Feature 2 -->
+      <div class="glass-card feature-card highlight-border">
+        <div class="feature-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2L3 6V12C3 16.2 6.8 20 12 22C17.2 20 21 16.2 21 12V6L12 2Z" fill="url(#gradShield)" fill-opacity="0.3" stroke="url(#gradShield)" stroke-width="2"/>
+            <path d="M12 8V12" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="1" fill="#ef4444"/>
+          </svg>
+        </div>
+
+        <h3>Emergency Safety Shield</h3>
+
+        <p>
+          The AI analyzes audio and text streams. At the slightest distress phrase ("help", "emergency"...)
+          or critical anomaly, your close contacts receive an HTML email and SMS alert instantly.
+        </p>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="glass-card feature-card">
+        <div class="feature-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="3" y="3" width="7" height="7" rx="1" fill="url(#gradDash)" fill-opacity="0.5" stroke="url(#gradDash)" stroke-width="1.5"/>
+            <rect x="14" y="3" width="7" height="7" rx="1" fill="url(#gradDash)" fill-opacity="0.5" stroke="url(#gradDash)" stroke-width="1.5"/>
+            <rect x="3" y="14" width="7" height="7" rx="1" fill="url(#gradDash)" fill-opacity="0.5" stroke="url(#gradDash)" stroke-width="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1" fill="url(#gradDash)" fill-opacity="0.5" stroke="url(#gradDash)" stroke-width="1.5"/>
+          </svg>
+        </div>
+
+        <h3>Holistic Dashboard</h3>
+
+        <p>
+          Track the complete project activity. View your voice vs text message statistics,
+          the number of triggered safety alerts, and your mood reports.
+        </p>
+      </div>
+
+      <!-- Feature 4 -->
+      <div class="glass-card feature-card">
+        <div class="feature-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 21.35L10.55 20.03C5.4 15.36 2 12.27 2 8.5 2 5.41 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.08C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.41 22 8.5c0 3.77-3.4 6.86-8.55 11.54L12 21.35Z" fill="url(#gradHeart)" fill-opacity="0.5" stroke="url(#gradHeart)" stroke-width="1.5"/>
+            <circle cx="8.5" cy="9.5" r="1.5" fill="#ffffff" fill-opacity="0.7"/>
+            <circle cx="15.5" cy="9.5" r="1.5" fill="#ffffff" fill-opacity="0.7"/>
+            <path d="M8 14C9 16 10.5 17 12 17C13.5 17 15 16 16 14" stroke="#ffffff" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+
+        <h3>Emotion Analysis</h3>
+
+        <p>
+          Our neural classifier evaluates your emotional tone (Calm, Anger, Fear, Sadness)
+          to adapt interactions and maintain a history of your well-being.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Stats Preview -->
+  <section class="stats-preview-section">
+    <div class="glass-card stats-preview-card">
+      <div class="stats-preview-grid">
+
+        <div class="stat-item">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Secure & Encrypted</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-number">&lt; 200ms</span>
+          <span class="stat-label">Response Time</span>
+        </div>
+
+        <div class="stat-item">
+          <span class="stat-number">24/7</span>
+          <span class="stat-label">Active Availability</span>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer-area">
+    <p>
+      © 2026 CompanionAI. Designed for your peace of mind and high-tech assistance.
+    </p>
+  </footer>
+</div>

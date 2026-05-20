@@ -1,0 +1,271 @@
+<div class="chat-app">
+  <!-- Sidebar minimaliste -->
+  <aside class="chat-sidebar">
+    <div class="sidebar-header">
+      <div class="logo" routerLink="/">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#grad1)" stroke-width="1.8"/>
+          <path d="M2 17L12 22L22 17" stroke="url(#grad2)" stroke-width="1.8"/>
+          <path d="M2 12L12 17L22 12" stroke="url(#grad1)" stroke-width="1.8"/>
+        </svg>
+        <span>CompanionAI</span>
+      </div>
+      <button class="new-chat-btn" (click)="clearChat()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        New chat
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a routerLink="/" class="nav-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        Home
+      </a>
+      <a routerLink="/chat" class="nav-link active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Chat
+      </a>
+      <a routerLink="/dashboard" class="nav-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+        </svg>
+        Dashboard
+      </a>
+      <a routerLink="/setup" class="nav-link">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        Emergency Setup
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar">
+          {{ (auth.currentUser?.username || 'U')[0].toUpperCase() }}
+        </div>
+        <div class="user-details">
+          <span class="user-name">{{ auth.currentUser?.username }}</span>
+          <span class="user-status">Connected</span>
+        </div>
+      </div>
+      <button class="logout-btn" (click)="logout()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Chat Area -->
+  <main class="chat-main">
+    <!-- Header -->
+    <header class="chat-main-header">
+      <div class="header-left">
+        <h1>Conversation</h1>
+        <div class="connection-status" [class]="status">
+          <span class="status-dot"></span>
+          <span>{{ statusLabel }}</span>
+        </div>
+      </div>
+      <div class="header-right">
+        <button class="header-btn" (click)="toggleTts()" [class.active]="ttsEnabled">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <line x1="12" y1="19" x2="12" y2="22" *ngIf="ttsEnabled"/>
+          </svg>
+        </button>
+        <button class="header-btn" (click)="reconnect()" *ngIf="status === 'disconnected'">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Danger Alert Banner -->
+    <div class="danger-alert" *ngIf="dangerAlert">
+      <div class="alert-content">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+          <path d="M12 2L3 6v6c0 4.2 2.9 8 9 10 6.1-2 9-5.8 9-10V6l-9-4z"/>
+          <circle cx="12" cy="16" r="1" fill="white"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+        </svg>
+        <div class="alert-text">
+          <strong>Danger Alert</strong> (Score: {{ dangerAlert.score | percent }})
+          <span>Message sent to {{ profile?.friend_email }}</span>
+        </div>
+      </div>
+      <button (click)="dismissDangerAlert()">×</button>
+    </div>
+
+    <!-- Hero Visual Animé (Centre) - Visible uniquement quand aucun message -->
+    <div class="chat-hero-visual" *ngIf="messages.length === 0">
+      <div class="hero-visual-container">
+        <div class="hero-glow-orb"></div>
+        <div class="hero-pulse-ring"></div>
+        <div class="hero-ai-orb">
+          <div class="hero-orb-inner">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="url(#heroGrad1)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M2 17L12 22L22 17" stroke="url(#heroGrad2)" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M2 12L12 17L22 12" stroke="url(#heroGrad1)" stroke-width="1.5" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="heroGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#6366f1"/>
+                  <stop offset="100%" stop-color="#a855f7"/>
+                </linearGradient>
+                <linearGradient id="heroGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#a855f7"/>
+                  <stop offset="100%" stop-color="#6366f1"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+        </div>
+        <div class="hero-wave-container">
+          <div class="hero-wave hero-wave-1"></div>
+          <div class="hero-wave hero-wave-2"></div>
+          <div class="hero-wave hero-wave-3"></div>
+          <div class="hero-wave hero-wave-4"></div>
+        </div>
+        <div class="hero-status">
+          <span class="hero-pulse-dot"></span>
+          <span>AI ready to chat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="messages-container" #messagesContainer>
+      <div class="messages-list">
+        <!-- Welcome Screen (sans l'icône car remplacée par le hero visual) -->
+        <div class="welcome-screen" *ngIf="messages.length === 0">
+          <h2>Welcome, {{ auth.currentUser?.username }}</h2>
+          <p>Start a conversation with your intelligent assistant.</p>
+          <div class="suggestions">
+            <button *ngFor="let tip of tips" (click)="useTip(tip)" class="suggestion-chip">
+              {{ tip }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div *ngFor="let msg of messages" class="message" [class.user]="msg.role === 'user'" [class.ai]="msg.role === 'ai'">
+          <div class="message-avatar">
+            <div class="avatar" [class.user-avatar]="msg.role === 'user'">
+              <span *ngIf="msg.role === 'user'">{{ (auth.currentUser?.username || 'U')[0].toUpperCase() }}</span>
+              <svg *ngIf="msg.role === 'ai'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              </svg>
+            </div>
+          </div>
+          <div class="message-content">
+            <div class="message-bubble">
+              <ng-container *ngIf="msg.content || !msg.streaming">
+                {{ msg.content }}
+                <span class="typing-cursor" *ngIf="msg.streaming"></span>
+              </ng-container>
+              <div class="message-loading" *ngIf="msg.streaming && !msg.content && msg.role === 'ai'">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="message-time">{{ formatTime(msg.time) }}</div>
+          </div>
+        </div>
+        <div #messagesEnd></div>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <footer class="input-area">
+      <div class="input-mode-selector">
+        <button class="mode-option" [class.active]="inputMode === 'text'" (click)="setMode('text')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M17 3l4 4-7 7H10v-4l7-7zM4 20l4-4"/>
+            <path d="M12 12l4 4"/>
+          </svg>
+          Text
+        </button>
+        <button class="mode-option" [class.active]="inputMode === 'voice'" (click)="setMode('voice')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          </svg>
+          Voice
+        </button>
+      </div>
+
+      <!-- Text Input Mode -->
+      <div class="text-input-wrapper" *ngIf="inputMode === 'text'">
+        <textarea
+          class="text-input"
+          [(ngModel)]="inputText"
+          (keydown)="onKeyDown($event)"
+          placeholder="Type your message..."
+          rows="1"
+          [disabled]="isProcessing || isSpeaking"
+        ></textarea>
+        <button class="send-button" (click)="sendText()" [disabled]="!inputText.trim() || isProcessing || isSpeaking">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Voice Input Mode -->
+      <div class="voice-input-wrapper" *ngIf="inputMode === 'voice'">
+        <div class="voice-visualizer">
+          <div *ngFor="let bar of volumeBars; let i = index" class="voice-bar" [style.height.px]="10 + bar * 35" [class.active]="isRecording"></div>
+        </div>
+        <button
+          class="mic-button"
+          [class.recording]="isRecording"
+          [class.processing]="isProcessing"
+          (click)="toggleRecording()"
+          [disabled]="isProcessing || isSpeaking || status === 'disconnected'"
+        >
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path *ngIf="!isRecording" d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+            <path *ngIf="!isRecording" d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+            <rect *ngIf="isRecording" x="6" y="4" width="12" height="16" rx="2"/>
+            <line *ngIf="isRecording" x1="12" y1="20" x2="12" y2="22"/>
+          </svg>
+        </button>
+        <div class="voice-status">
+          <span *ngIf="!isRecording && !isProcessing && !isSpeaking">Press to talk</span>
+          <span *ngIf="isRecording">🔴 Recording...</span>
+          <span *ngIf="isProcessing">⚡ Processing...</span>
+          <span *ngIf="isSpeaking">🔊 Playing...</span>
+        </div>
+      </div>
+
+      <!-- Disconnected State -->
+      <div class="disconnected-state" *ngIf="status === 'disconnected'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <circle cx="12" cy="16" r="1" fill="currentColor"/>
+        </svg>
+        Connection lost
+        <button (click)="reconnect()">Reconnect</button>
+      </div>
+    </footer>
+  </main>
+</div>

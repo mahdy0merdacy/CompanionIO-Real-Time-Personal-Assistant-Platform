@@ -1,0 +1,165 @@
+<div class="setup-container">
+  <!-- Neon Orbs -->
+  <div class="glow-orb orb-purple"></div>
+  <div class="glow-orb orb-indigo"></div>
+
+  <!-- Wizard Wrapper -->
+  <div class="glass-card setup-card">
+    <div class="setup-header">
+      <h2>Initial Setup</h2>
+      <p>Let's personalize your CompanionAI space to get started on the right foot.</p>
+    </div>
+
+    <!-- Steps Tracker -->
+    <div class="steps-tracker">
+      <div class="tracker-step" [class.active]="currentStep >= 1">
+        <div class="step-num">1</div>
+        <div class="step-label">Areas of Interest</div>
+      </div>
+      <div class="step-line" [class.active]="currentStep >= 2"></div>
+      <div class="tracker-step" [class.active]="currentStep >= 2">
+        <div class="step-num">2</div>
+        <div class="step-label">Emergency Contact</div>
+      </div>
+    </div>
+
+    <div *ngIf="error" class="error-banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; margin-right: 8px; vertical-align: middle;">
+        <path d="M12 2L3 6V12C3 16.2 6.8 20 12 22C17.2 20 21 16.2 21 12V6L12 2Z" stroke="#ef4444" stroke-width="1.5" fill="none"/>
+        <path d="M12 8V12" stroke="#ef4444" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="12" cy="16" r="1" fill="#ef4444"/>
+      </svg>
+      {{ error }}
+    </div>
+
+    <!-- STEP 1: Select Domains -->
+    <div *ngIf="currentStep === 1" class="step-content">
+      <h3 class="step-title">What topics would you like to discuss with the AI?</h3>
+      <p class="step-desc">Select the key areas for your future conversations (multiple choices).</p>
+
+      <div class="domains-grid">
+        <div
+          *ngFor="let opt of domainOptions"
+          class="domain-card"
+          [class.selected]="opt.selected"
+          (click)="toggleDomain(opt)"
+        >
+          <div class="domain-icon" [innerHTML]="getDomainIcon(opt.icon)"></div>
+          <div class="domain-info">
+            <h4>{{ opt.name }}</h4>
+            <p>{{ opt.description }}</p>
+          </div>
+          <div class="selection-indicator">
+            <span class="dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <div></div>
+        <button
+          (click)="nextStep()"
+          class="btn btn-primary btn-glow"
+          [disabled]="!isDomainSelected"
+        >
+          Continue
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; margin-left: 6px;">
+            <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 5L19 12L12 19" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2: Configure Contacts -->
+    <div *ngIf="currentStep === 2" class="step-content">
+      <h3 class="step-title">Who should we contact in case of distress?</h3>
+      <p class="step-desc">Provide the email and phone number of a close friend or family member who will receive emergency alerts if danger is detected.</p>
+
+      <form [formGroup]="contactForm" (ngSubmit)="submit()" class="setup-form">
+        <!-- Email Input -->
+        <div class="input-group">
+          <label for="friend_email">Friend's Email Address</label>
+          <div class="input-wrapper">
+            <span class="field-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M22 6L12 13L2 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <input
+              id="friend_email"
+              type="email"
+              formControlName="friend_email"
+              placeholder="friend@example.com"
+              [class.invalid]="friend_email.invalid && friend_email.touched"
+            />
+          </div>
+          <div *ngIf="friend_email.invalid && friend_email.touched" class="field-error">
+            <span *ngIf="friend_email.errors?.['required']">Friend's email is required.</span>
+            <span *ngIf="friend_email.errors?.['email']">Please enter a valid email address.</span>
+          </div>
+        </div>
+
+        <!-- Phone Input -->
+        <div class="input-group">
+          <label for="friend_phone">Mobile Phone Number (SMS)</label>
+          <div class="input-wrapper">
+            <span class="field-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 16.92V19C22.0001 19.5304 21.7894 20.0391 21.4143 20.4142C21.0392 20.7893 20.5305 21 20 21H18.5C16.1 21 13.8 20.2 11.9 18.8C10.1 17.4 8.6 15.6 7.5 13.5C6.4 11.4 5.8 9.1 5.8 6.6V5C5.8 4.46957 6.01074 3.96086 6.38581 3.58579C6.76088 3.21071 7.26959 3 7.80002 3H10.6C10.9 3 11.2 3.2 11.3 3.5L11.9 6.1C11.9 6.4 11.8 6.7 11.5 6.9L9.40002 8.7C10.3 10.6 11.6 12.2 13.2 13.6L15.1 11.6C15.4 11.3 15.7 11.2 15.9 11.3L18.5 12C18.8 12.1 19 12.4 19 12.7V16.92Z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+              </svg>
+            </span>
+            <input
+              id="friend_phone"
+              type="text"
+              formControlName="friend_phone"
+              placeholder="+1 234 567 8900"
+              [class.invalid]="friend_phone.invalid && friend_phone.touched"
+            />
+          </div>
+          <div *ngIf="friend_phone.invalid && friend_phone.touched" class="field-error">
+            <span *ngIf="friend_phone.errors?.['required']">Phone number is required.</span>
+            <span *ngIf="friend_phone.errors?.['pattern']">Please enter a valid phone number (+ or digits format).</span>
+          </div>
+        </div>
+
+        <div class="setup-warning">
+          <span class="warning-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L3 6V12C3 16.2 6.8 20 12 22C17.2 20 21 16.2 21 12V6L12 2Z" stroke="#f97316" stroke-width="1.5" fill="none"/>
+              <path d="M12 8V12" stroke="#f97316" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1" fill="#f97316"/>
+            </svg>
+          </span>
+          <p>
+            <strong>Security Note:</strong> Alerts are encrypted and sent instantly via HTML email and SMS as soon as distress is detected in written or voice messages.
+          </p>
+        </div>
+
+        <div class="step-actions">
+          <button type="button" (click)="prevStep()" class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; margin-right: 6px;">
+              <path d="M19 12H5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M12 19L5 12L12 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+            Back
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary btn-glow"
+            [disabled]="contactForm.invalid || loading"
+          >
+            <span *ngIf="!loading">
+              Complete Setup
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: inline-block; margin-left: 6px;">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+            <span *ngIf="loading">Saving...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
