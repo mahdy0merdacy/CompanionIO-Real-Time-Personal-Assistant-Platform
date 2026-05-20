@@ -1,10 +1,72 @@
 <div class="face-wrapper" [attr.data-state]="faceService.state()">
   <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Gradient Definitions -->
+    <defs>
+      <!-- Eye Gradients -->
+      <radialGradient id="eyeGradient">
+        <stop offset="0%" stop-color="#a8edea" />
+        <stop offset="100%" stop-color="#fed6e3" />
+      </radialGradient>
+      
+      <radialGradient id="listeningGradient">
+        <stop offset="0%" stop-color="#ff6b6b" />
+        <stop offset="100%" stop-color="#ff9ff3" />
+      </radialGradient>
+      
+      <radialGradient id="thinkingGradient">
+        <stop offset="0%" stop-color="#ffd93d" />
+        <stop offset="100%" stop-color="#a8edea" />
+      </radialGradient>
+      
+      <radialGradient id="talkingGradient">
+        <stop offset="0%" stop-color="#4facfe" />
+        <stop offset="100%" stop-color="#00f2fe" />
+      </radialGradient>
+      
+      <radialGradient id="errorGradient">
+        <stop offset="0%" stop-color="#ff4757" />
+        <stop offset="100%" stop-color="#ee5a6f" />
+      </radialGradient>
+      
+      <radialGradient id="successGradient">
+        <stop offset="0%" stop-color="#2ed573" />
+        <stop offset="100%" stop-color="#26de81" />
+      </radialGradient>
+      
+      <radialGradient id="loadingGradient">
+        <stop offset="0%" stop-color="#ffa502" />
+        <stop offset="100%" stop-color="#ffb733" />
+      </radialGradient>
+      
+      <radialGradient id="excitedGradient">
+        <stop offset="0%" stop-color="#ff006e" />
+        <stop offset="100%" stop-color="#ffb700" />
+      </radialGradient>
+      
+      <radialGradient id="sleepingGradient">
+        <stop offset="0%" stop-color="#9d4edd" />
+        <stop offset="100%" stop-color="#c77dff" />
+      </radialGradient>
+      
+      <radialGradient id="warningGradient">
+        <stop offset="0%" stop-color="#ffd60a" />
+        <stop offset="100%" stop-color="#ffd93d" />
+      </radialGradient>
+      
+      <!-- Mouth Gradient -->
+      <linearGradient id="mouthGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#a8edea" />
+        <stop offset="50%" stop-color="#fed6e3" />
+        <stop offset="100%" stop-color="#4facfe" />
+      </linearGradient>
+    </defs>
+
     <!-- Eyes -->
     <g class="eyes">
       <circle class="eye left" cx="35" cy="45" r="5" />
       <circle class="eye right" cx="65" cy="45" r="5" />
     </g>
+    
     <!-- Mouth -->
     <path class="mouth" d="M 35 65 Q 50 65 65 65" />
   </svg>

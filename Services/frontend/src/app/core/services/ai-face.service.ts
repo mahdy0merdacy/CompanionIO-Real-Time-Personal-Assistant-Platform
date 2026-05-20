@@ -1,6 +1,6 @@
 import { Injectable, signal } from '@angular/core';
 
-export type FaceState = 'idle' | 'listening' | 'thinking' | 'talking';
+export type FaceState = 'idle' | 'listening' | 'thinking' | 'talking' | 'error' | 'success' | 'loading' | 'excited' | 'sleeping' | 'warning';
 
 @Injectable({ providedIn: 'root' })
 export class AiFaceService {

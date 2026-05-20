@@ -1,94 +1,480 @@
 .face-wrapper {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 40px rgba(102, 126, 234, 0.6), 0 0 80px rgba(118, 75, 162, 0.3);
+  position: relative;
+  animation: facePulse 3s ease-in-out infinite;
+}
+
+.face-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #4facfe);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: rotateGradient 4s linear infinite;
+  z-index: -1;
 }
 
 svg {
-  fill: #333;
   width: 100%;
   height: 100%;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+}
+
+.eye {
+  transition: all 0.2s ease;
 }
 
 .mouth {
   fill: none;
-  stroke: #333;
-  stroke-width: 4;
+  stroke-width: 5;
   stroke-linecap: round;
+  stroke-linejoin: round;
   transition: all 0.3s ease;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.5));
 }
 
-/* IDLE: Neutral expression */
+/* IDLE: Neutral, calm expression */
 [data-state="idle"] .eye {
-  r: 5;
+  fill: url(#eyeGradient);
+  r: 6;
+  filter: drop-shadow(0 0 4px rgba(79, 172, 254, 0.6));
 }
 
 [data-state="idle"] .mouth {
+  stroke: url(#mouthGradient);
   d: path("M 35 65 Q 50 65 65 65");
 }
 
-/* LISTENING: Eyes widen and pulse slightly */
+[data-state="idle"] .face-wrapper {
+  animation: facePulse 3s ease-in-out infinite;
+}
+
+/* LISTENING: Eyes wide with vibrant glow */
 [data-state="listening"] .eye {
-  animation: pulse 1s infinite;
+  fill: url(#listeningGradient);
+  animation: listeningPulse 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 8px #ff6b6b);
 }
 
 [data-state="listening"] .mouth {
-  d: path("M 35 65 Q 50 68 65 65");
+  stroke: #ff9ff3;
+  d: path("M 35 65 Q 50 70 65 65");
 }
 
-/* THINKING: Eyes look side to side */
+[data-state="listening"] .face-wrapper {
+  animation: listeningGlow 0.6s ease-in-out infinite;
+}
+
+/* THINKING: Rotating eyes with rainbow glow */
+[data-state="thinking"] .eye {
+  fill: url(#thinkingGradient);
+  animation: thinkingSpin 2s linear infinite;
+  filter: drop-shadow(0 0 8px #ffd93d);
+}
+
 [data-state="thinking"] .eyes {
-  animation: lookAround 2s infinite;
+  animation: eyeRoll 3s ease-in-out infinite;
 }
 
 [data-state="thinking"] .mouth {
-  d: path("M 35 65 Q 50 63 65 65");
+  stroke: #ffd93d;
+  d: path("M 35 65 Q 50 60 65 65");
 }
 
-/* TALKING: Mouth transforms into a curve */
-[data-state="talking"] .mouth {
-  animation: talkMove 0.4s infinite alternate;
-  d: path("M 35 65 Q 50 85 65 65");
+[data-state="thinking"] .face-wrapper {
+  animation: thinkingRotate 2s linear infinite;
 }
 
+/* TALKING: Animated mouth with happy vibe */
 [data-state="talking"] .eye {
-  animation: blink 0.5s infinite;
+  fill: url(#talkingGradient);
+  animation: happyBlink 0.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #4facfe);
 }
 
-@keyframes pulse {
-  0%, 100% {
-    r: 5;
-  }
-  50% {
-    r: 7;
-  }
+[data-state="talking"] .mouth {
+  stroke: url(#mouthGradient);
+  animation: talkMove 0.3s ease-in-out infinite alternate;
+  d: path("M 35 65 Q 50 80 65 65");
+  stroke-width: 6;
 }
 
-@keyframes lookAround {
+[data-state="talking"] .face-wrapper {
+  animation: talkingPulse 0.5s ease-in-out infinite;
+}
+
+/* ERROR: Shaking, red glow with confused eyes */
+[data-state="error"] .eye {
+  fill: url(#errorGradient);
+  animation: errorShake 0.2s infinite;
+  filter: drop-shadow(0 0 10px #ff4757);
+}
+
+[data-state="error"] .mouth {
+  stroke: #ff4757;
+  d: path("M 35 65 Q 50 58 65 65");
+}
+
+[data-state="error"] .face-wrapper {
+  background: linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%);
+  animation: errorGlow 0.5s ease-in-out infinite, errorShake 0.2s infinite;
+}
+
+/* SUCCESS: Green glow with big smile */
+[data-state="success"] .eye {
+  fill: url(#successGradient);
+  animation: successWink 0.6s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #2ed573);
+}
+
+[data-state="success"] .mouth {
+  stroke: #2ed573;
+  d: path("M 35 65 Q 50 80 65 65");
+  animation: bigSmile 0.5s ease-in-out infinite;
+}
+
+[data-state="success"] .face-wrapper {
+  background: linear-gradient(135deg, #2ed573 0%, #26de81 100%);
+  animation: successGlow 0.5s ease-in-out infinite;
+}
+
+/* LOADING: Spinning with orange glow */
+[data-state="loading"] .eye {
+  fill: url(#loadingGradient);
+  animation: loadingSpin 1s linear infinite;
+  filter: drop-shadow(0 0 10px #ffa502);
+}
+
+[data-state="loading"] .eyes {
+  animation: loadingRotate 2s linear infinite;
+}
+
+[data-state="loading"] .mouth {
+  stroke: #ffa502;
+  d: path("M 35 65 Q 50 65 65 65");
+}
+
+[data-state="loading"] .face-wrapper {
+  background: linear-gradient(135deg, #ffa502 0%, #ffb733 100%);
+  animation: loadingGlow 0.8s ease-in-out infinite;
+}
+
+/* EXCITED: Bright colors with bouncing eyes */
+[data-state="excited"] .eye {
+  fill: url(#excitedGradient);
+  animation: excitedBounce 0.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px #ff006e);
+}
+
+[data-state="excited"] .mouth {
+  stroke: url(#mouthGradient);
+  d: path("M 35 65 Q 50 85 65 65");
+  animation: excitedSmile 0.3s ease-in-out infinite alternate;
+}
+
+[data-state="excited"] .face-wrapper {
+  background: linear-gradient(135deg, #ff006e 0%, #ffb700 100%);
+  animation: excitedJump 0.4s ease-in-out infinite;
+}
+
+/* SLEEPING: Closed eyes with soft purple glow */
+[data-state="sleeping"] .eye {
+  fill: url(#sleepingGradient);
+  r: 3;
+  animation: sleepingPulse 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 6px #9d4edd);
+}
+
+[data-state="sleeping"] .mouth {
+  stroke: #9d4edd;
+  d: path("M 40 70 Q 50 68 60 70");
+}
+
+[data-state="sleeping"] .face-wrapper {
+  background: linear-gradient(135deg, #9d4edd 0%, #c77dff 100%);
+  animation: sleepingDim 2s ease-in-out infinite;
+}
+
+/* WARNING: Yellow/orange pulsing with alert expression */
+[data-state="warning"] .eye {
+  fill: url(#warningGradient);
+  animation: warningAlert 0.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 10px #ffd60a);
+}
+
+[data-state="warning"] .mouth {
+  stroke: #ff6b35;
+  d: path("M 35 65 Q 50 62 65 65");
+}
+
+[data-state="warning"] .face-wrapper {
+  background: linear-gradient(135deg, #ffd60a 0%, #ffd93d 100%);
+  animation: warningPulse 0.4s ease-in-out infinite;
+}
+
+/* Additional Keyframe Animations */
+
+@keyframes errorShake {
   0%, 100% {
     transform: translateX(0);
   }
-  50% {
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
     transform: translateX(5px);
   }
 }
 
-@keyframes talkMove {
+@keyframes errorGlow {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(255, 71, 87, 0.6), 0 0 80px rgba(238, 90, 111, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(255, 71, 87, 0.8), 0 0 120px rgba(238, 90, 111, 0.5);
+  }
+}
+
+@keyframes successWink {
+  0%, 49%, 100% {
+    r: 6;
+  }
+  50% {
+    r: 1;
+  }
+}
+
+@keyframes bigSmile {
   from {
-    d: path("M 35 65 Q 50 70 65 65");
+    d: path("M 35 65 Q 50 78 65 65");
   }
   to {
     d: path("M 35 65 Q 50 85 65 65");
   }
 }
 
-@keyframes blink {
+@keyframes successGlow {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(46, 213, 115, 0.6), 0 0 80px rgba(38, 222, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(46, 213, 115, 0.8), 0 0 120px rgba(38, 222, 129, 0.5);
+  }
+}
+
+@keyframes loadingSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingRotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingGlow {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(255, 165, 2, 0.6), 0 0 80px rgba(255, 183, 51, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(255, 165, 2, 0.8), 0 0 120px rgba(255, 183, 51, 0.5);
+  }
+}
+
+@keyframes excitedBounce {
+  0%, 100% {
+    r: 6;
+    transform: translateY(0);
+  }
+  50% {
+    r: 7;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes excitedSmile {
+  from {
+    d: path("M 35 65 Q 50 80 65 65");
+  }
+  to {
+    d: path("M 35 65 Q 50 90 65 65");
+  }
+}
+
+@keyframes excitedJump {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(255, 0, 110, 0.6), 0 0 80px rgba(255, 183, 0, 0.3);
+  }
+  50% {
+    transform: scale(1.1);
+    box-shadow: 0 0 60px rgba(255, 0, 110, 0.8), 0 0 120px rgba(255, 183, 0, 0.5);
+  }
+}
+
+@keyframes sleepingPulse {
+  0%, 100% {
+    r: 3;
+    filter: drop-shadow(0 0 6px #9d4edd);
+  }
+  50% {
+    r: 2;
+    filter: drop-shadow(0 0 4px #9d4edd);
+  }
+}
+
+@keyframes sleepingDim {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.4), 0 0 40px rgba(199, 125, 255, 0.2);
+    opacity: 0.8;
+  }
+  50% {
+    box-shadow: 0 0 15px rgba(157, 78, 221, 0.3), 0 0 30px rgba(199, 125, 255, 0.15);
+    opacity: 0.6;
+  }
+}
+
+@keyframes warningAlert {
+  0%, 100% {
+    r: 6;
+    filter: drop-shadow(0 0 8px #ffd60a);
+  }
+  50% {
+    r: 7;
+    filter: drop-shadow(0 0 15px #ffd60a);
+  }
+}
+
+@keyframes warningPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(255, 214, 10, 0.6), 0 0 80px rgba(255, 217, 61, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(255, 214, 10, 0.8), 0 0 120px rgba(255, 217, 61, 0.5);
+  }
+}
+@keyframes facePulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(102, 126, 234, 0.6), 0 0 80px rgba(118, 75, 162, 0.3);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 50px rgba(102, 126, 234, 0.8), 0 0 100px rgba(118, 75, 162, 0.5);
+  }
+}
+
+@keyframes rotateGradient {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes listeningPulse {
+  0%, 100% {
+    r: 7;
+    filter: drop-shadow(0 0 8px #ff6b6b);
+  }
+  50% {
+    r: 9;
+    filter: drop-shadow(0 0 15px #ff6b6b);
+  }
+}
+
+@keyframes listeningGlow {
+  0%, 100% {
+    box-shadow: 0 0 40px rgba(255, 107, 107, 0.6), 0 0 80px rgba(255, 159, 243, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 60px rgba(255, 107, 107, 0.8), 0 0 120px rgba(255, 159, 243, 0.5);
+  }
+}
+
+@keyframes thinkingSpin {
+  0% {
+    fill: #ffd93d;
+    filter: drop-shadow(0 0 8px #ffd93d) rotate(0deg);
+  }
+  50% {
+    fill: #a8edea;
+    filter: drop-shadow(0 0 8px #a8edea) rotate(180deg);
+  }
+  100% {
+    fill: #ffd93d;
+    filter: drop-shadow(0 0 8px #ffd93d) rotate(360deg);
+  }
+}
+
+@keyframes eyeRoll {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-8px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes thinkingRotate {
+  from {
+    transform: rotate(0deg) scale(1);
+  }
+  to {
+    transform: rotate(360deg) scale(1.08);
+  }
+}
+
+@keyframes happyBlink {
   0%, 49%, 100% {
-    r: 5;
+    r: 6;
   }
   50% {
     r: 1;
+  }
+}
+
+@keyframes talkMove {
+  from {
+    d: path("M 35 65 Q 50 72 65 65");
+  }
+  to {
+    d: path("M 35 65 Q 50 85 65 65");
+  }
+}
+
+@keyframes talkingPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 40px rgba(79, 172, 254, 0.6), 0 0 80px rgba(160, 174, 255, 0.3);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 60px rgba(79, 172, 254, 0.8), 0 0 120px rgba(160, 174, 255, 0.5);
   }
 }
