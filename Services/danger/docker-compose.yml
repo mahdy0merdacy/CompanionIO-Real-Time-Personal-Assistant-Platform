@@ -1,0 +1,66 @@
+# docker-compose.yml – add this service to your existing CompanionIO stack
+
+
+services:
+
+  # ── Existing services (abbreviated) ───────────────────────────────────────
+  orchestrator:
+    image: companionIO/orchestrator:latest
+    environment:
+      - DANGER_DETECTION_URL=http://danger-detection:8004/api/v1
+    depends_on:
+      - danger-detection
+    ports:
+      - "8000:8000"
+
+  stt-service:
+    image: companionIO/stt:latest
+    ports:
+      - "8001:8001"
+
+  llm-service:
+    image: companionIO/llm:latest
+    ports:
+      - "8002:8002"
+
+  tts-service:
+    image: companionIO/tts:latest
+    ports:
+      - "8003:8003"
+
+  # ── New: Danger Detection Service ─────────────────────────────────────────
+  danger-detection:
+    build:
+      context: ./danger-detection-service
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    environment:
+      - DANGER_THRESHOLD=0.45
+      - WEIGHT_SOUND=0.40
+      - WEIGHT_EMOTION=0.35
+      - WEIGHT_TEXT=0.25
+      - YAMNET_MODEL_URL=https://tfhub.dev/google/yamnet/1
+      - EMOTION_MODEL_NAME=superb/hubert-large-superb-er
+    volumes:
+      # Cache HuggingFace + TF Hub models across restarts
+      - hf-cache:/root/.cache/huggingface
+      - tf-cache:/root/.cache/tfhub_modules
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s    # models take time to load
+    # Uncomment for GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+volumes:
+  hf-cache:
+  tf-cache:
